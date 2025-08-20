@@ -5,13 +5,21 @@
 2. go mod tidy  /* instala paquetes *\
 3. go build -o gestor_turnos .
 4. ./gestor_turnos
-
-3. go build -o gestor_turnos . && ./gestor_turnos
-
-
+5. go build -o gestor_turnos . && ./gestor_turnos
 
 
 
 # TODO
-1. Validar que todos los cruds esten funcionando correctamente
-2. Frontend  
+1. Frontend  
+
+
+# DONE
+1. Todos los cruds validados y funcionando
+
+
+# Comandos en db
+
+## Empleados
+```
+SELECT * FROM empleados;
+```

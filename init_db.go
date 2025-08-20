@@ -37,11 +37,12 @@ type Turno struct {
     ClienteID  int    `json:"cliente_id"`
     EmpleadoID int    `json:"empleado_id"`
     ServicioID int    `json:"servicio_id"`
-    Fecha      string `json:"fecha"`      // formato: "YYYY-MM-DD"
-    HoraInicio string `json:"hora_inicio"` // formato: "HH:MM"
-    HoraFin    string `json:"hora_fin"`    // formato: "HH:MM"
-    Estado     string `json:"estado"`      // pendiente, confirmado, cancelado, completado
+    Fecha      string `json:"fecha"`        // "2025-08-20"
+    HoraInicio string `json:"hora_inicio"`  // "15:30"
+    HoraFin    string `json:"hora_fin"`     // "16:00"
+    Estado     string `json:"estado"`
 }
+
 
 func initDB() *sql.DB {
 	user := "admin"

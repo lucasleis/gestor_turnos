@@ -32,3 +32,5 @@ CREATE TABLE IF NOT EXISTS turnos (
     hora_fin TIME NOT NULL,
     estado VARCHAR(20) DEFAULT 'pendiente'  -- pendiente, confirmado, cancelado, completado
 );
+
+

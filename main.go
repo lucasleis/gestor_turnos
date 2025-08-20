@@ -10,7 +10,7 @@ func main() {
 
     r := gin.Default()
 
-    // CRUD clientes
+    // CRUD clientes            // VERIFICADO
     r.GET("/clientes", func(c *gin.Context) { getClientes(c, db) })
     r.GET("/clientes/:id", func(c *gin.Context) { getCliente(c, db) })
     r.POST("/clientes", func(c *gin.Context) { createCliente(c, db) })
@@ -18,7 +18,7 @@ func main() {
     r.DELETE("/clientes/:id", func(c *gin.Context) { deleteCliente(c, db) })
 
 
-    // CRUD de empleados
+    // CRUD de empleados        // VERIFICADO
     r.GET("/empleados", func(c *gin.Context) { getEmpleados(c, db) })
     r.GET("/empleados/:id", func(c *gin.Context) { getEmpleado(c, db) })
     r.POST("/empleados", func(c *gin.Context) { createEmpleado(c, db) })
@@ -26,7 +26,7 @@ func main() {
     r.DELETE("/empleados/:id", func(c *gin.Context) { deleteEmpleado(c, db) })
 
 
-    // CRUD servicios
+    // CRUD servicios           // VERIFICADO
     r.GET("/servicios", func(c *gin.Context) { getServicios(c, db) })
     r.GET("/servicios/:id", func(c *gin.Context) { getServicio(c, db) })
     r.POST("/servicios", func(c *gin.Context) { createServicio(c, db) })
@@ -34,7 +34,7 @@ func main() {
     r.DELETE("/servicios/:id", func(c *gin.Context) { deleteServicio(c, db) })
 
 
-    // CRUD de turnos
+    // CRUD de turnos           // VERIFICADO
     r.GET("/turnos", func(c *gin.Context) { getTurnos(c, db) })
     r.POST("/turnos", func(c *gin.Context) { createTurno(c, db) })
     r.PUT("/turnos/:id", func(c *gin.Context) { updateTurno(c, db) })
