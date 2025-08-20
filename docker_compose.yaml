@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: barber
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: barberia
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=barber
+      - DB_PASSWORD=secret
+      - DB_NAME=barberia
+      - DB_PORT=5432
+
+volumes:
+  db_data:
