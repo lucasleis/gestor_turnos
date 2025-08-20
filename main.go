@@ -2,7 +2,7 @@ package main
 
 import (
     "github.com/gin-gonic/gin"
-    "net/http"
+    // "net/http"
 )
 
 func main() {
@@ -10,10 +10,29 @@ func main() {
 
     r := gin.Default()
 
-    // Ruta de prueba
-    r.GET("/ping", func(c *gin.Context) {
-        c.JSON(http.StatusOK, gin.H{"message": "pong"})
-    })
+    // CRUD clientes
+    r.GET("/clientes", func(c *gin.Context) { getClientes(c, db) })
+    r.GET("/clientes/:id", func(c *gin.Context) { getCliente(c, db) })
+    r.POST("/clientes", func(c *gin.Context) { createCliente(c, db) })
+    r.PUT("/clientes/:id", func(c *gin.Context) { updateCliente(c, db) })
+    r.DELETE("/clientes/:id", func(c *gin.Context) { deleteCliente(c, db) })
+
+
+    // CRUD de empleados
+    r.GET("/empleados", func(c *gin.Context) { getEmpleados(c, db) })
+    r.GET("/empleados/:id", func(c *gin.Context) { getEmpleado(c, db) })
+    r.POST("/empleados", func(c *gin.Context) { createEmpleado(c, db) })
+    r.PUT("/empleados/:id", func(c *gin.Context) { updateEmpleado(c, db) })
+    r.DELETE("/empleados/:id", func(c *gin.Context) { deleteEmpleado(c, db) })
+
+
+    // CRUD servicios
+    r.GET("/servicios", func(c *gin.Context) { getServicios(c, db) })
+    r.GET("/servicios/:id", func(c *gin.Context) { getServicio(c, db) })
+    r.POST("/servicios", func(c *gin.Context) { createServicio(c, db) })
+    r.PUT("/servicios/:id", func(c *gin.Context) { updateServicio(c, db) })
+    r.DELETE("/servicios/:id", func(c *gin.Context) { deleteServicio(c, db) })
+
 
     // CRUD de turnos
     r.GET("/turnos", func(c *gin.Context) { getTurnos(c, db) })

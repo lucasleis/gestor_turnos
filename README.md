@@ -10,3 +10,8 @@
 
 
 
+
+
+# TODO
+1. Validar que todos los cruds esten funcionando correctamente
+2. Frontend  

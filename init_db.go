@@ -12,35 +12,35 @@ import (
 )
 
 type Cliente struct {
-	ID       uint `gorm:"primaryKey"`
-	Nombre   string
-	Telefono string
-	Email    string `gorm:"unique"`
+    ID       int    `json:"id"`
+    Nombre   string `json:"nombre"`
+    Telefono string `json:"telefono"`
+    Email    string `json:"email"`
 }
 
 type Empleado struct {
-	ID           uint `gorm:"primaryKey"`
-	Nombre       string
-	Especialidad string
+    ID          int    `json:"id"`
+    Nombre      string `json:"nombre"`
+    Especialidad string `json:"especialidad"`
 }
 
 type Servicio struct {
-	ID          uint `gorm:"primaryKey"`
-	Nombre      string
-	DuracionMin int
-	Precio      float64
+    ID          int     `json:"id"`
+    Nombre      string  `json:"nombre"`
+    DuracionMin int     `json:"duracion_min"`
+    Precio      float64 `json:"precio"`
 }
 
 // Estructura mínima para mapear JSON
 type Turno struct {
-	ID         int    `json:"id"`
-	ClienteID  int    `json:"cliente_id"`
-	EmpleadoID int    `json:"empleado_id"`
-	ServicioID int    `json:"servicio_id"`
-	Fecha      string `json:"fecha"`
-	HoraInicio string `json:"hora_inicio"`
-	HoraFin    string `json:"hora_fin"`
-	Estado     string `json:"estado"`
+    ID         int    `json:"id"`
+    ClienteID  int    `json:"cliente_id"`
+    EmpleadoID int    `json:"empleado_id"`
+    ServicioID int    `json:"servicio_id"`
+    Fecha      string `json:"fecha"`      // formato: "YYYY-MM-DD"
+    HoraInicio string `json:"hora_inicio"` // formato: "HH:MM"
+    HoraFin    string `json:"hora_fin"`    // formato: "HH:MM"
+    Estado     string `json:"estado"`      // pendiente, confirmado, cancelado, completado
 }
 
 func initDB() *sql.DB {
