@@ -1,0 +1,82 @@
+Quiero que construyas una Single Page Application (SPA) en React + Tailwind + shadcn/ui para gestionar turnos de una barbería (pero que pueda adaptarse a otros rubros). La app consumirá un backend en Go (Gin) corriendo en http://localhost:2020 con los siguientes endpoints:
+
+Endpoints del backend
+
+Clientes
+- GET /clientes → lista de clientes
+- POST /clientes → crear cliente
+
+Empleados 
+- GET /empleados → lista de empleados
+- POST /empleados → crear empleado
+ 
+Servicios
+- GET /servicios → lista de servicios
+- POST /servicios → crear servicio
+
+Turnos
+- GET /turnos → lista de turnos
+- POST /turnos → crear turno
+- PUT /turnos/:id → actualizar turno
+- DELETE /turnos/:id → eliminar turno
+
+JSONs de ejemplo
+
+Turno:
+{
+  "cliente_id": 1,
+  "empleado_id": 2,
+  "servicio_id": 1,
+  "fecha": "2025-01-02",
+  "hora_inicio": "15:30",
+  "hora_fin": "16:00",
+  "estado": "confirmado"
+}
+
+Empleado:
+{ "nombre": "Juan Perez", "especialidad": "Corte" }
+
+Servicio:
+{ "nombre": "Corte + Barba", "duracion_min": 30, "precio": 10000 }
+
+Cliente:
+{ "nombre": "Pepe", "telefono": "1234", "email": "pepe@gmail.com" }
+
+
+Requerimientos de la SPA
+
+1. Toda la app en una sola página (layout responsive).
+
+2. Layout dividido en dos paneles:
+
+- Panel izquierdo – Formulario de Turno:
+    - Select de cliente (cargar con GET /clientes) 
+    - Select de empleado (GET /empleados)
+    - Select de servicio (GET /servicios)
+    - Input fecha
+    - Input hora inicio y hora fin
+    - Select estado (pendiente, confirmado, cancelado, completado)
+    - Botón Reservar Turno → POST /turnos
+    - Botones rápidos para crear cliente, empleado o servicio en modales simples
+
+- Panel derecho – Vista de Turnos:
+    - Tabla con columnas: Cliente, Empleado, Servicio, Fecha, Hora Inicio, Hora Fin, Estado, Acciones
+        - Acciones: Editar (modal con PUT /turnos/:id) y Eliminar (DELETE /turnos/:id)
+    - Calendario visual estilo agenda mostrando los turnos existentes con bloques de hora y color según estado
+
+3. UI moderna y minimalista usando Tailwind + shadcn/ui:
+
+- Cards redondeadas, sombras suaves, botones con feedback visual
+- Modales para formularios de crear/editar
+
+4. Toda la lógica de fetch integrada directamente en la app (no usar backend intermedio)
+
+5. Código organizado y fácil de extender a otros rubros (consultorios, talleres, etc.)
+
+Objetivo final:
+- Generar el código completo de React listo para copiar y correr, con:
+- Formulario de creación de turnos
+- Tabla editable/listado de turnos
+- Calendario visual tipo agenda
+- Modales para crear clientes, empleados y servicios
+
