@@ -360,7 +360,7 @@ const BarberBookingApp = () => {
       <header className="header">
         <h1>
           <Scissors size={24} /> 
-          Sistema de Gestión - Barbería
+          Sistema de Gestión - nombre_del_lugar{}
         </h1>
         <DarkModeToggle />
       </header>
@@ -376,13 +376,16 @@ const BarberBookingApp = () => {
           {/* Panel Izquierdo - Formulario */}
           <div className="space-y-6">
             <Card>
+
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
                   Nuevo Turno
                 </CardTitle>
               </CardHeader>
-              <CardContent className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
+
+              <CardContent className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', gap: '16px' }} ">
+
                 <Select 
                   value={nuevoTurno.cliente_id} 
                   onChange={(e) => setNuevoTurno({...nuevoTurno, cliente_id: e.target.value})}
@@ -415,26 +418,26 @@ const BarberBookingApp = () => {
                   ))}
                 </Select>
 
-                <Input
-                  type="date"
-                  value={nuevoTurno.fecha}
-                  onChange={(e) => setNuevoTurno({...nuevoTurno, fecha: e.target.value})}
-                />
+                <Input type="date" value={nuevoTurno.fecha} onChange={(e) => setNuevoTurno({...nuevoTurno, fecha: e.target.value})} />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    type="time"
-                    placeholder="Hora inicio"
-                    value={nuevoTurno.hora_inicio}
-                    onChange={(e) => setNuevoTurno({...nuevoTurno, hora_inicio: e.target.value})}
-                  />
-                  <Input
-                    type="time"
-                    placeholder="Hora fin"
-                    value={nuevoTurno.hora_fin}
-                    onChange={(e) => setNuevoTurno({...nuevoTurno, hora_fin: e.target.value})}
-                  />
-                </div>
+                {/* 
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      type="time"
+                      placeholder="Hora inicio"
+                      value={nuevoTurno.hora_inicio}
+                      onChange={(e) => setNuevoTurno({...nuevoTurno, hora_inicio: e.target.value})}
+                    />
+                    <Input
+                      type="time"
+                      placeholder="Hora fin"
+                      value={nuevoTurno.hora_fin}
+                      onChange={(e) => setNuevoTurno({...nuevoTurno, hora_fin: e.target.value})}
+                    />
+                  </div>
+                */}
+
+                <Input type="time" placeholder="Hora fin" value={nuevoTurno.hora_fin} onChange={(e) => setNuevoTurno({...nuevoTurno, hora_fin: e.target.value})} />
 
                 <Select 
                   value={nuevoTurno.estado} 
@@ -451,6 +454,7 @@ const BarberBookingApp = () => {
                   <Calendar className="h-4 w-4 mr-2" />
                   Reservar Turno
                 </Button>
+
               </CardContent>
             </Card>
           </div>
@@ -666,6 +670,7 @@ const BarberBookingApp = () => {
             </div>
           )}
         </Modal>
+
       </div>
     </div>
   );

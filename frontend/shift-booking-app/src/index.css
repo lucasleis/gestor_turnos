@@ -51,7 +51,7 @@
 /* Dark mode */
 [data-theme="dark"] {
   --color-bg: #0f172a;
-  --color-text: #f8fafc;
+  --color-text: #0f172a;
   --color-border: #475569;
 }
 
