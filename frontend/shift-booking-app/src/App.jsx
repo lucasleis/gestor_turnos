@@ -9,16 +9,16 @@ const DarkModeToggle = () => {
 
   useEffect(() => {
     if (dark) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute('data-theme', 'dark');
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.removeAttribute('data-theme');
     }
   }, [dark]);
 
   return (
     <button
       onClick={() => setDark(!dark)}
-      className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+      className="dark-toggle"
     >
       {dark ? <Sun size={18} /> : <Moon size={18} />}
     </button>
@@ -28,24 +28,15 @@ const DarkModeToggle = () => {
 
 /// Componentes shadcn/ui simplificados \\\
 
-const Button = ({ children, variant = "default", size = "default", className = "", ...props }) => {
-  const variants = {
-    default: "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200",
-    outline: "border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200",
-    destructive: "bg-red-600 text-white hover:bg-red-700",
-    ghost: "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200",
-  };
-
-  const sizes = {
-    default: "h-10 px-4 py-2 text-sm",
-    sm: "h-9 px-3 text-sm",
-    lg: "h-11 px-6 text-base",
-  };
-
+const Button = ({ children, variant = "primary", size = "default", className = "", ...props }) => {
+  const baseClass = "btn";
+  const variantClass = variant === "primary" ? "btn-primary" : `btn-${variant}`;
+  const sizeClass = size !== "default" ? `btn-${size}` : "";
+  
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseClass} ${variantClass} ${sizeClass} ${className}`}
     >
       {children}
     </button>
@@ -58,39 +49,33 @@ const Input = ({ placeholder, value, onChange, type = "text", className = "" }) 
     placeholder={placeholder}
     value={value}
     onChange={onChange}
-    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400"
+    className={className}
   />
 );
 
-const Select = ({ children, value, onChange, placeholder }) => (
-  <select value={value} onChange={onChange} className="" >
+const Select = ({ children, value, onChange, placeholder, className = "" }) => (
+  <select value={value} onChange={onChange} className={className}>
     <option value="">{placeholder}</option>
     {children}
   </select>
 );
 
 const Card = ({ children, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.2 }}
-    className={`rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md p-4 ${className}`}
-  >
+  <div className={`card ${className}`}>
     {children}
-  </motion.div>
+  </div>
 );
 
 const CardHeader = ({ children }) => (
-  <div className="flex flex-col space-y-1.5 p-6 pb-4">{children}</div>
+  <div className="card-header">{children}</div>
 );
 
 const CardTitle = ({ children }) => (
-  <h3 className="text-2xl font-semibold leading-none tracking-tight">{children}</h3>
+  <h3 className="card-title">{children}</h3>
 );
 
 const CardContent = ({ children }) => (
-  <div className="p-6 pt-0">{children}</div>
+  <div>{children}</div>
 );
 
 
@@ -100,15 +85,15 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
-            <X className="h-4 w-4" />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">{title}</h2>
+          <button onClick={onClose} className="modal-close">
+            <X size={16} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );
@@ -322,22 +307,24 @@ const BarberBookingApp = () => {
   const getServicioName = (id) => servicios.find(s => s.id === id)?.nombre || 'N/A';
 
   // Colores por estado
-  const getEstadoColor = (estado) => {
-    const colors = {
-      pendiente: "bg-yellow-500 text-white",
-      confirmado: "bg-green-500 text-white",
-      cancelado: "bg-red-500 text-white",
-      completado: "bg-blue-500 text-white",
+  /*
+    const getEstadoColor = (estado) => {
+      const colors = {
+        pendiente: "bg-yellow-500 text-white",
+        confirmado: "bg-green-500 text-white",
+        cancelado: "bg-red-500 text-white",
+        completado: "bg-blue-500 text-white",
+      };
+      return colors[estado] || "bg-gray-500 text-white";
     };
-    return colors[estado] || "bg-gray-500 text-white";
-  };  
+  */  
 
   // Vista de calendario simplificada
   const VistaCalendario = () => {
     const turnosHoy = turnos.filter(t => t.fecha === new Date().toISOString().split('T')[0]);
     
     return (
-      <div className="space-y-4">
+      <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
         <h3 className="text-lg font-semibold">Agenda de Hoy</h3>
         <div className="grid gap-2">
           {turnosHoy.length === 0 ? (
@@ -350,7 +337,7 @@ const BarberBookingApp = () => {
                     <Clock className="h-4 w-4 text-slate-500" />
                     <span className="font-medium">{turno.hora_inicio} - {turno.hora_fin}</span>
                   </div>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(turno.estado)}`}>
+                  <span className={`badge badge-${turno.estado}`}>
                     {turno.estado}
                   </span>
                 </div>
@@ -368,22 +355,24 @@ const BarberBookingApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition">
-      
+    <div style={{minHeight: '100vh'}}>
       <Toaster position="top-right" />
-      <header className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-        {/* <h1 className="text-2xl font-bold flex items-center gap-2"><Scissors /> Barbería</h1> */}
+      <header className="header">
+        <h1>
+          <Scissors size={24} /> 
+          Sistema de Gestión - Barbería
+        </h1>
         <DarkModeToggle />
       </header>
-
-      <div className="container mx-auto p-6">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Sistema de Gestión de Turnos</h1>
-          <p className="text-slate-600">Barbería & Estética</p>
+  
+      <div className="container">
+        <header className="mb-4">
+          <h1 className="text-2xl font-bold mb-2">Sistema de Gestión de Turnos</h1>
+          <p style={{color: 'var(--color-text-light)'}}>Barbería & Estética</p>
         </header>
         
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2">
           {/* Panel Izquierdo - Formulario */}
           <div className="space-y-6">
             <Card>
@@ -393,7 +382,7 @@ const BarberBookingApp = () => {
                   Nuevo Turno
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
                 <Select 
                   value={nuevoTurno.cliente_id} 
                   onChange={(e) => setNuevoTurno({...nuevoTurno, cliente_id: e.target.value})}
@@ -472,7 +461,7 @@ const BarberBookingApp = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Gestión de Turnos</CardTitle>
-                  <div className="flex space-x-2">
+                  <div className="flex flex gap-2">
                     <Button
                       variant={vistaActual === 'tabla' ? 'default' : 'outline'}
                       size="sm"
@@ -492,7 +481,7 @@ const BarberBookingApp = () => {
               </CardHeader>
               <CardContent>
                 {vistaActual === 'tabla' ? (
-                  <div className="space-y-4">
+                  <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
                     {turnos.length === 0 ? (
                       <p className="text-slate-500 text-center py-8">No hay turnos registrados</p>
                     ) : (
@@ -501,7 +490,7 @@ const BarberBookingApp = () => {
                           <Card key={turno.id} className="p-4">
                             <div className="flex items-center justify-between">
                               <div className="space-y-1">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center flex gap-2">
                                   <User className="h-4 w-4 text-slate-500" />
                                   <span className="font-medium">{getClienteName(turno.cliente_id)}</span>
                                 </div>
@@ -514,7 +503,7 @@ const BarberBookingApp = () => {
                                   {turno.estado}
                                 </span>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex flex gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -526,7 +515,7 @@ const BarberBookingApp = () => {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
-                                  variant="destructive"
+                                  variant="danger"
                                   size="sm"
                                   onClick={() => eliminarTurno(turno.id)}
                                 >
@@ -549,7 +538,7 @@ const BarberBookingApp = () => {
 
         {/* Modales */}
         <Modal isOpen={modalCliente} onClose={() => setModalCliente(false)} title="Nuevo Cliente">
-          <div className="space-y-4">
+          <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
             <Input
               placeholder="Nombre completo"
               value={nuevoCliente.nombre}
@@ -574,7 +563,7 @@ const BarberBookingApp = () => {
         </Modal>
 
         <Modal isOpen={modalEmpleado} onClose={() => setModalEmpleado(false)} title="Nuevo Empleado">
-          <div className="space-y-4">
+          <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
             <Input
               placeholder="Nombre completo"
               value={nuevoEmpleado.nombre}
@@ -593,7 +582,7 @@ const BarberBookingApp = () => {
         </Modal>
 
         <Modal isOpen={modalServicio} onClose={() => setModalServicio(false)} title="Nuevo Servicio">
-          <div className="space-y-4">
+          <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
             <Input
               placeholder="Nombre del servicio"
               value={nuevoServicio.nombre}
@@ -620,7 +609,7 @@ const BarberBookingApp = () => {
 
         <Modal isOpen={modalEditTurno} onClose={() => setModalEditTurno(false)} title="Editar Turno">
           {turnoEditar && (
-            <div className="space-y-4">
+            <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
               <Select 
                 value={turnoEditar.cliente_id} 
                 onChange={(e) => setTurnoEditar({...turnoEditar, cliente_id: e.target.value})}
