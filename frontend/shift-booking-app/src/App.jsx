@@ -100,7 +100,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 };
 
 // Componente principal
-const BarberBookingApp = () => {
+const ShiftBookingApp = () => {
   // Estados principales
   const [turnos, setTurnos] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -143,22 +143,41 @@ const BarberBookingApp = () => {
   // Vista actual
   const [vistaActual, setVistaActual] = useState('tabla');
 
-  const API_BASE = 'http://localhost:2020';
+  const API_BASE = 'http://127.0.0.1:5000';
 
   // Funciones de API
+  // const fetchData = async () => {
+  //   try {
+  //     const [turnosRes, clientesRes, empleadosRes, serviciosRes] = await Promise.all([
+  //       fetch(`${API_BASE}/turnos`),
+  //       fetch(`${API_BASE}/clientes`),
+  //       fetch(`${API_BASE}/barbers`),
+  //       fetch(`${API_BASE}/services`)
+  //     ]);
+
   const fetchData = async () => {
     try {
-      const [turnosRes, clientesRes, empleadosRes, serviciosRes] = await Promise.all([
-        fetch(`${API_BASE}/turnos`),
-        fetch(`${API_BASE}/clientes`),
-        fetch(`${API_BASE}/empleados`),
-        fetch(`${API_BASE}/servicios`)
+      const responses = await Promise.all([
+        // fetch(`${API_BASE}/turnos`),
+        //fetch(`${API_BASE}/clientes`),
+        fetch(`${API_BASE}/barbers`),
+        fetch(`${API_BASE}/services`)
       ]);
 
-      setTurnos(await turnosRes.json() || []);
-      setClientes(await clientesRes.json() || []);
-      setEmpleados(await empleadosRes.json() || []);
-      setServicios(await serviciosRes.json() || []);
+      // Verificamos que todos los fetch respondieron correctamente
+      for (const res of responses) {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      // const [turnosData, /*clientesData,*/ empleadosData, serviciosData] = await Promise.all(
+      const [ empleadosData, serviciosData] = await Promise.all(
+        responses.map(res => res.json())
+      );
+
+      // setTurnos(turnosData || []);
+      //setClientes(clientesData || []);
+      setEmpleados(empleadosData || []);
+      setServicios(serviciosData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -303,8 +322,9 @@ const BarberBookingApp = () => {
 
   // Obtener nombre por ID
   const getClienteName = (id) => clientes.find(c => c.id === id)?.nombre || 'N/A';
-  const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.nombre || 'N/A';
-  const getServicioName = (id) => servicios.find(s => s.id === id)?.nombre || 'N/A';
+  const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.name || 'N/A';
+  const getServicioName = (id) => servicios.find(s => s.id === id)?.name || 'N/A';
+
 
   // Colores por estado
   /*
@@ -402,7 +422,9 @@ const BarberBookingApp = () => {
                   placeholder="Seleccionar empleado"
                 >
                   {empleados.map(empleado => (
-                    <option key={empleado.id} value={empleado.id}>{empleado.nombre}</option>
+                    <option key={empleado.id} value={empleado.id}>
+                      {empleado.name}
+                    </option>
                   ))}
                 </Select>
 
@@ -413,7 +435,7 @@ const BarberBookingApp = () => {
                 >
                   {servicios.map(servicio => (
                     <option key={servicio.id} value={servicio.id}>
-                      {servicio.nombre} - ${servicio.precio}
+                      {servicio.name} - ${servicio.precio ?? ''}
                     </option>
                   ))}
                 </Select>
@@ -676,4 +698,4 @@ const BarberBookingApp = () => {
   );
 };
 
-export default BarberBookingApp;
+export default ShiftBookingApp;
