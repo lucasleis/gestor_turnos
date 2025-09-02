@@ -329,6 +329,15 @@ select {
 .dark-toggle:hover {
   background: var(--color-bg);
 }
+
+.heading-small {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--color-text);
+  display: block;
+}
+
   
 /* Utilities */
 .text-center { text-align: center; }

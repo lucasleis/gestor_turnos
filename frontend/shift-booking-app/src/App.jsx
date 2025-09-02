@@ -43,19 +43,20 @@ const Button = ({ children, variant = "primary", size = "default", className = "
   );
 };
 
-const Input = ({ placeholder, value, onChange, type = "text", className = "" }) => (
+const Input = ({ placeholder, value, onChange, type = "text", className = "", ...props }) => (
   <input
     type={type}
     placeholder={placeholder}
     value={value}
     onChange={onChange}
     className={className}
+    {...props}  // <- reenvía min, max, required, etc.
   />
 );
 
 const Select = ({ children, value, onChange, placeholder, className = "" }) => (
   <select value={value} onChange={onChange} className={className}>
-    <option value="">{placeholder}</option>
+    {placeholder && <option value="" disabled>{placeholder}</option>}
     {children}
   </select>
 );
@@ -143,6 +144,7 @@ const ShiftBookingApp = () => {
   // Vista actual
   const [vistaActual, setVistaActual] = useState('tabla');
 
+  // URL a acceder
   const API_BASE = 'http://127.0.0.1:5000';
 
   // Funciones de API
@@ -342,7 +344,7 @@ const ShiftBookingApp = () => {
   // Vista de calendario simplificada
   const VistaCalendario = () => {
     const turnosHoy = turnos.filter(t => t.fecha === new Date().toISOString().split('T')[0]);
-    
+
     return (
       <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
         <h3 className="text-lg font-semibold">Agenda de Hoy</h3>
@@ -373,6 +375,33 @@ const ShiftBookingApp = () => {
       </div>
     );
   };
+
+
+  // Fecha 
+  const hoy = new Date().toISOString().split("T")[0];
+
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
+  const max = maxDate.toISOString().split("T")[0];
+
+  // Horario
+  const generarHorarios = () => {
+    const horarios = [];
+    const inicio = 10; // 10 AM
+    const fin = 19;    // 19 horas (7 PM)
+    for (let h = inicio; h <= fin; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        // No exceder 19:30
+        if (h === fin && m > 30) break;
+        const horaStr = String(h).padStart(2, "0");
+        const minStr = String(m).padStart(2, "0");
+        horarios.push(`${horaStr}:${minStr}`);
+      }
+    }
+    return horarios;
+  };
+  
+  const horarios = generarHorarios();
 
   return (
     <div style={{minHeight: '100vh'}}>
@@ -406,61 +435,99 @@ const ShiftBookingApp = () => {
 
               <CardContent className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', gap: '16px' }} ">
 
-                <Select 
-                  value={nuevoTurno.cliente_id} 
-                  onChange={(e) => setNuevoTurno({...nuevoTurno, cliente_id: e.target.value})}
-                  placeholder="Seleccionar cliente"
-                >
-                  {clientes.map(cliente => (
-                    <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
-                  ))}
-                </Select>
+                <div> {/* DNI */}
+                  <h4 className="heading-small">
+                    DNI
+                  </h4>
+                  <Input
+                    type="text"
+                    placeholder="Ingrese DNI"
+                    value={nuevoCliente.dni || ""}
+                    maxLength={8} // máximo 8 dígitos
+                    onChange={(e) => {
+                      // Permite solo números
+                      const valor = e.target.value.replace(/\D/g, "");
+                      // Limita entre 0 y 8 dígitos
+                      if (valor.length <= 8) {
+                        setNuevoCliente({ ...nuevoCliente, dni: valor });
+                      }
+                    }}
+                  />
+                  {nuevoCliente.dni && (nuevoCliente.dni.length < 7 || nuevoCliente.dni.length > 8) && (
+                    <span style={{ color: "red", fontSize: "12px" }}>
+                      El DNI debe tener 7 u 8 números
+                    </span>
+                  )}
+                </div>
 
-                <Select 
-                  value={nuevoTurno.empleado_id} 
-                  onChange={(e) => setNuevoTurno({...nuevoTurno, empleado_id: e.target.value})}
-                  placeholder="Seleccionar empleado"
-                >
-                  {empleados.map(empleado => (
-                    <option key={empleado.id} value={empleado.id}>
-                      {empleado.name}
-                    </option>
-                  ))}
-                </Select>
+                <div> {/* Servicio */}
+                  <h4 className="heading-small">
+                    Servicio
+                  </h4>
 
-                <Select 
-                  value={nuevoTurno.servicio_id} 
-                  onChange={(e) => setNuevoTurno({...nuevoTurno, servicio_id: e.target.value})}
-                  placeholder="Seleccionar servicio"
-                >
-                  {servicios.map(servicio => (
-                    <option key={servicio.id} value={servicio.id}>
-                      {servicio.name} - ${servicio.precio ?? ''}
-                    </option>
-                  ))}
-                </Select>
+                  <Select 
+                    value={nuevoTurno.servicio_id || ""}
+                    onChange={(e) => setNuevoTurno({...nuevoTurno, servicio_id: e.target.value})}
+                    placeholder="Seleccionar servicio"
+                  >
+                    {servicios.map(servicio => (
+                      <option key={servicio.id} value={servicio.id}>
+                        {servicio.name} {/* - ${servicio.precio ?? ''} */}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
 
-                <Input type="date" value={nuevoTurno.fecha} onChange={(e) => setNuevoTurno({...nuevoTurno, fecha: e.target.value})} />
+                <div> {/* Empleado */}
+                  <h4 className="heading-small">
+                    Empleado
+                  </h4>
+
+                  <Select
+                    value={nuevoTurno.empleado_id || ""}
+                    onChange={(e) => setNuevoTurno({ ...nuevoTurno, empleado_id: e.target.value })}
+                    placeholder="Seleccionar empleado"
+                  >
+                    {empleados.map((empleado) => (
+                      <option key={empleado.id} value={empleado.id}>
+                        {empleado.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div> {/* Fecha */}
+                  <h4 className="heading-small">
+                    Fecha
+                  </h4>
+
+                  <Input
+                    type="date"
+                    value={nuevoTurno.fecha || hoy} // si no hay fecha, mostrar hoy
+                    min={hoy}                      // bloquea fechas anteriores
+                    max={max}                      // bloquea fechas posteriores a 3 meses
+                    onChange={(e) =>
+                      setNuevoTurno({ ...nuevoTurno, fecha: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div> {/* Hora */}
+                  <h4 className="heading-small">
+                    Hora
+                  </h4>
+                  <Select
+                    value={nuevoTurno.hora_fin || ""}
+                    onChange={(e) => setNuevoTurno({ ...nuevoTurno, hora_fin: e.target.value })}
+                  >
+                    <option value="" disabled hidden>Seleccionar hora</option>
+                    {horarios.map((hora) => (
+                      <option key={hora} value={hora}>{hora}</option>
+                    ))}
+                  </Select>
+                </div>
 
                 {/* 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      type="time"
-                      placeholder="Hora inicio"
-                      value={nuevoTurno.hora_inicio}
-                      onChange={(e) => setNuevoTurno({...nuevoTurno, hora_inicio: e.target.value})}
-                    />
-                    <Input
-                      type="time"
-                      placeholder="Hora fin"
-                      value={nuevoTurno.hora_fin}
-                      onChange={(e) => setNuevoTurno({...nuevoTurno, hora_fin: e.target.value})}
-                    />
-                  </div>
-                */}
-
-                <Input type="time" placeholder="Hora fin" value={nuevoTurno.hora_fin} onChange={(e) => setNuevoTurno({...nuevoTurno, hora_fin: e.target.value})} />
-
                 <Select 
                   value={nuevoTurno.estado} 
                   onChange={(e) => setNuevoTurno({...nuevoTurno, estado: e.target.value})}
@@ -471,6 +538,7 @@ const ShiftBookingApp = () => {
                   <option value="cancelado">Cancelado</option>
                   <option value="completado">Completado</option>
                 </Select>
+                */}
 
                 <Button className="w-full" onClick={crearTurno}>
                   <Calendar className="h-4 w-4 mr-2" />
