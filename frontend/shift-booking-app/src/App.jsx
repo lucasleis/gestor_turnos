@@ -460,6 +460,57 @@ const ShiftBookingApp = () => {
                   )}
                 </div>
 
+                {/* Campos adicionales que aparecen solo si el DNI es válido */}
+                {nuevoCliente.dni && nuevoCliente.dni.length >= 7 && nuevoCliente.dni.length <= 8 && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
+                    <h4 className="heading-small font-medium text-slate-700">
+                      Datos del Cliente
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="heading-small">Nombre</h4>
+                        <Input
+                          type="text"
+                          placeholder="Nombre"
+                          value={nuevoCliente.nombre || ""}
+                          onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <h4 className="heading-small">Apellido</h4>
+                        <Input
+                          type="text"
+                          placeholder="Apellido"
+                          value={nuevoCliente.apellido || ""}
+                          onChange={(e) => setNuevoCliente({ ...nuevoCliente, apellido: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="heading-small">Email</h4>
+                      <Input
+                        type="email"
+                        placeholder="correo@ejemplo.com"
+                        value={nuevoCliente.email || ""}
+                        onChange={(e) => setNuevoCliente({ ...nuevoCliente, email: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <h4 className="heading-small">Teléfono</h4>
+                      <Input
+                        type="tel"
+                        placeholder="Número de teléfono"
+                        value={nuevoCliente.telefono || ""}
+                        onChange={(e) => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div> {/* Servicio */}
                   <h4 className="heading-small">
                     Servicio
@@ -496,49 +547,31 @@ const ShiftBookingApp = () => {
                   </Select>
                 </div>
 
-                <div> {/* Fecha */}
-                  <h4 className="heading-small">
-                    Fecha
-                  </h4>
+                <div className="grid grid-cols-2 gap-4"> {/* Contenedor fila fecha + hora */}
+                  <div>
+                    <h4 className="heading-small">Fecha</h4>
+                    <Input
+                      type="date"
+                      value={nuevoTurno.fecha || hoy}
+                      min={hoy}
+                      max={max}
+                      onChange={(e) => setNuevoTurno({ ...nuevoTurno, fecha: e.target.value })}
+                    />
+                  </div>
 
-                  <Input
-                    type="date"
-                    value={nuevoTurno.fecha || hoy} // si no hay fecha, mostrar hoy
-                    min={hoy}                      // bloquea fechas anteriores
-                    max={max}                      // bloquea fechas posteriores a 3 meses
-                    onChange={(e) =>
-                      setNuevoTurno({ ...nuevoTurno, fecha: e.target.value })
-                    }
-                  />
+                  <div>
+                    <h4 className="heading-small">Hora</h4>
+                    <Select
+                      value={nuevoTurno.hora_fin || ""}
+                      onChange={(e) => setNuevoTurno({ ...nuevoTurno, hora_fin: e.target.value })}
+                    >
+                      <option value="" disabled hidden>Seleccionar hora</option>
+                      {horarios.map((hora) => (
+                        <option key={hora} value={hora}>{hora}</option>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
-
-                <div> {/* Hora */}
-                  <h4 className="heading-small">
-                    Hora
-                  </h4>
-                  <Select
-                    value={nuevoTurno.hora_fin || ""}
-                    onChange={(e) => setNuevoTurno({ ...nuevoTurno, hora_fin: e.target.value })}
-                  >
-                    <option value="" disabled hidden>Seleccionar hora</option>
-                    {horarios.map((hora) => (
-                      <option key={hora} value={hora}>{hora}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                {/* 
-                <Select 
-                  value={nuevoTurno.estado} 
-                  onChange={(e) => setNuevoTurno({...nuevoTurno, estado: e.target.value})}
-                  placeholder="Estado"
-                >
-                  <option value="pendiente">Pendiente</option>
-                  <option value="confirmado">Confirmado</option>
-                  <option value="cancelado">Cancelado</option>
-                  <option value="completado">Completado</option>
-                </Select>
-                */}
 
                 <Button className="w-full" onClick={crearTurno}>
                   <Calendar className="h-4 w-4 mr-2" />
