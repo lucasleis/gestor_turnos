@@ -403,6 +403,10 @@ const ShiftBookingApp = () => {
   
   const horarios = generarHorarios();
 
+  // Busqueda de cliente por DNI
+  const [clienteExistente, setClienteExistente] = useState(null); 
+
+
   return (
     <div style={{minHeight: '100vh'}}>
       <Toaster position="top-right" />
@@ -443,13 +447,30 @@ const ShiftBookingApp = () => {
                     type="text"
                     placeholder="Ingrese DNI"
                     value={nuevoCliente.dni || ""}
-                    maxLength={8} // máximo 8 dígitos
-                    onChange={(e) => {
-                      // Permite solo números
+                    maxLength={8}
+                    onChange={async (e) => {
                       const valor = e.target.value.replace(/\D/g, "");
-                      // Limita entre 0 y 8 dígitos
                       if (valor.length <= 8) {
                         setNuevoCliente({ ...nuevoCliente, dni: valor });
+
+                        // buscar cliente cuando hay 7 u 8 dígitos
+                        if (valor.length >= 7 && valor.length <= 8) {
+                          try {
+                            const res = await fetch(`${API_BASE}/clientes/${valor}`);
+                            if (res.ok) {
+                              const data = await res.json();
+                              setClienteExistente(data);  // cliente encontrado
+                              setNuevoTurno({ ...nuevoTurno, cliente_id: data.id }); // vincular turno
+                            } else {
+                              setClienteExistente(false); // no existe
+                            }
+                          } catch (err) {
+                            console.error("Error buscando cliente:", err);
+                            setClienteExistente(false);
+                          }
+                        } else {
+                          setClienteExistente(null); // reset
+                        }
                       }
                     }}
                   />
@@ -460,13 +481,17 @@ const ShiftBookingApp = () => {
                   )}
                 </div>
 
-                {/* Campos adicionales que aparecen solo si el DNI es válido */}
-                {nuevoCliente.dni && nuevoCliente.dni.length >= 7 && nuevoCliente.dni.length <= 8 && (
+                {/* Mostrar mensaje si existe */}
+                {clienteExistente && (
+                  <p className="text-green-600 font-semibold">
+                    Bienvenido {clienteExistente.nombre}
+                  </p>
+                )}
+
+                {/* Mostrar formulario si no existe */}
+                {clienteExistente === false && (
                   <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
-                    <h4 className="heading-small font-medium text-slate-700">
-                      Datos del Cliente
-                    </h4>
-                    
+                    <h4 className="heading-small font-medium text-slate-700">Datos del Cliente</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h4 className="heading-small">Nombre</h4>
@@ -477,7 +502,6 @@ const ShiftBookingApp = () => {
                           onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
                         />
                       </div>
-                      
                       <div>
                         <h4 className="heading-small">Apellido</h4>
                         <Input
