@@ -18,6 +18,7 @@ import (
 // 	    HoraInicio string `json:"hora_inicio"`  // "15:30"
 // 	    HoraFin    string `json:"hora_fin"`     // "16:00"
 // 	    Estado     string `json:"estado"`
+// 		DuracionMin int   `json:"duracion_min"`
 // }
 
 // Validaciones comunes
@@ -115,10 +116,10 @@ func createTurno(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	query := `INSERT INTO turnos (cliente_id, empleado_id, servicio_id, fecha, hora_inicio, hora_fin, estado)
-              VALUES ($1,$2,$3,$4,$5,$6,$7) 
+	query := `INSERT INTO turnos (cliente_id, empleado_id, servicio_id, fecha, hora_inicio, hora_fin, estado, duracion_min)
+              VALUES ($1,$2,$3,$4,$5,$6,$7,$8) 
               RETURNING id`
-	err := db.QueryRow(query, t.ClienteID, t.EmpleadoID, t.ServicioID, t.Fecha, t.HoraInicio, t.HoraFin, t.Estado).
+	err := db.QueryRow(query, t.ClienteID, t.EmpleadoID, t.ServicioID, t.Fecha, t.HoraInicio, t.HoraFin, t.Estado, t.DuracionMin).
 		Scan(&t.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -41,6 +41,7 @@ type Turno struct {
     HoraInicio string `json:"hora_inicio"`  // "15:30"
     HoraFin    string `json:"hora_fin"`     // "16:00"
     Estado     string `json:"estado"`
+	DuracionMin int   `json:"duracion_min"`
 }
 
 

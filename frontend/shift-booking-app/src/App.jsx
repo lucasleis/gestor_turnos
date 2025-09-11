@@ -116,6 +116,7 @@ const ShiftBookingApp = () => {
     fecha: '',
     hora_inicio: '',
     hora_fin: '',
+    duracion_min: '',
     estado: 'pendiente'
   });
 
@@ -181,32 +182,84 @@ const ShiftBookingApp = () => {
 
   // Crear turno
   const crearTurno = async () => {
+    console.log("000 - iniciar creación de turno");
+
+    console.log("nuevoTurno: ", nuevoTurno)
+
+    // Validar que todos los campos obligatorios estén completos
+    if (
+      !nuevoTurno.servicio_id ||
+      !nuevoTurno.empleado_id ||
+      !nuevoTurno.fecha ||
+      !nuevoTurno.hora_inicio  // ✅ Solo validar hora_inicio
+    ) {
+      toast.error("Debe seleccionar Servicio, Empleado, Fecha y Hora antes de reservar.");
+      return;
+    }
+
+    // Si es cliente nuevo, validar todos los campos
+    if (clienteExistente === false) {
+      if (!nuevoCliente.nombre || !nuevoCliente.apellido || !nuevoCliente.email || !nuevoCliente.telefono) {
+        toast.error("Debe completar todos los datos del cliente nuevo.");
+        return;
+      }
+    }
+
     try {
-      const response = await fetch(`${API_BASE}/turnos`, {
+      let clienteId = nuevoTurno.cliente_id;
+
+      // Crear cliente nuevo si corresponde
+      if (clienteExistente === false) {
+        const resCliente = await fetch(`${API_BASE}/clientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoCliente)
+        });
+
+        if (!resCliente.ok) {
+          const errData = await resCliente.json();
+          throw new Error(errData.error || "Error creando cliente");
+        }
+
+        const dataCliente = await resCliente.json();
+        clienteId = dataCliente.id;
+      }
+
+      // Convertir IDs a números (el backend espera int)
+      const turnoParaEnviar = {
+        ...nuevoTurno,
+        cliente_id: Number(clienteId),
+        servicio_id: Number(nuevoTurno.servicio_id),
+        empleado_id: Number(nuevoTurno.empleado_id),
+        estado: 'confirmado'
+      };
+
+      // POST al backend
+      const resTurno = await fetch(`${API_BASE}/turnos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...nuevoTurno,
-          cliente_id: parseInt(nuevoTurno.cliente_id),
-          empleado_id: parseInt(nuevoTurno.empleado_id),
-          servicio_id: parseInt(nuevoTurno.servicio_id)
-        })
+        body: JSON.stringify(turnoParaEnviar)
       });
-      
-      if (response.ok) {
-        setNuevoTurno({
-          cliente_id: '',
-          empleado_id: '',
-          servicio_id: '',
-          fecha: '',
-          hora_inicio: '',
-          hora_fin: '',
-          estado: 'pendiente'
-        });
-        fetchData();
+
+      if (!resTurno.ok) {
+        const errData = await resTurno.json();
+        throw new Error(errData.error || "Error creando turno");
       }
-    } catch (error) {
-      console.error('Error creating turno:', error);
+
+      const dataTurno = await resTurno.json();
+
+      // Actualizar lista de turnos y resetear formularios
+      setTurnos([...turnos, dataTurno]);
+      toast.success('Turno creado correctamente');
+      setNuevoTurno({});
+      setNuevoCliente({});
+      setClienteExistente(null);
+
+      console.log("FIN - turno creado", dataTurno);
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Error al crear el turno');
     }
   };
 
@@ -360,38 +413,44 @@ const ShiftBookingApp = () => {
   maxDate.setMonth(maxDate.getMonth() + 3);
   const max = maxDate.toISOString().split("T")[0];
 
-  // Horario
-  const generarHorarios = (fechaSeleccionada) => {
+  // Horario dinámico en base al servicio
+  const generarHorarios = (fechaSeleccionada, duracionMin = 30) => {
     const horarios = [];
-    const inicio = 10; // 10 AM
-    const fin = 19;    // 19 horas (7 PM)
+
+    const inicio = new Date();
+    inicio.setHours(10, 0, 0, 0); // 10:00 AM
+
+    const fin = new Date();
+    fin.setHours(19, 30, 0, 0); // hasta las 19:30
 
     const ahora = new Date();
     const hoy = ahora.toISOString().split("T")[0]; // yyyy-mm-dd
 
-    for (let h = inicio; h <= fin; h++) {
-      for (let m = 0; m < 60; m += 30) {
-        if (h === fin && m > 30) break;
+    let current = new Date(inicio);
 
-        const horaStr = String(h).padStart(2, "0");
-        const minStr = String(m).padStart(2, "0");
-        const horario = `${horaStr}:${minStr}`;
+    while (current <= fin) {
+      const horaStr = String(current.getHours()).padStart(2, "0");
+      const minStr = String(current.getMinutes()).padStart(2, "0");
+      const horario = `${horaStr}:${minStr}`;
 
-        // --- Validación: si es hoy, no permitir horarios pasados ---
-        if (fechaSeleccionada === hoy) {
-          const horaTurno = new Date(`${hoy}T${horaStr}:${minStr}:00`);
-          if (horaTurno <= ahora) {
-            continue; // saltamos horarios pasados
-          }
+      // --- Validación: si es hoy, no permitir horarios pasados ---
+      if (fechaSeleccionada === hoy) {
+        if (current <= ahora) {
+          current.setMinutes(current.getMinutes() + duracionMin);
+          continue;
         }
-
-        horarios.push(horario);
       }
+
+      horarios.push(horario);
+      current.setMinutes(current.getMinutes() + duracionMin);
     }
+
     return horarios;
   };
 
-  const horarios = generarHorarios(nuevoTurno.fecha || hoy);
+  const servicioSeleccionado = servicios.find(s => s.id === parseInt(nuevoTurno.servicio_id));
+  const duracion = servicioSeleccionado ? servicioSeleccionado.duracion_min : 30;
+  const horarios = generarHorarios(nuevoTurno.fecha || hoy, duracion);
 
   // Busqueda de cliente por DNI
   const [clienteExistente, setClienteExistente] = useState(null); 
@@ -576,8 +635,26 @@ const ShiftBookingApp = () => {
                   <div>
                     <h4 className="heading-small">Hora</h4>
                     <Select
-                      value={nuevoTurno.hora_fin || ""}
-                      onChange={(e) => setNuevoTurno({ ...nuevoTurno, hora_fin: e.target.value })}
+                      value={nuevoTurno.hora_inicio || ""} // ✅ Cambiar de hora_fin a hora_inicio
+                      onChange={(e) => {duracion_min: duracion
+                        const horaInicio = e.target.value;
+                        // Calcular hora fin automáticamente basado en duración del servicio
+                        const [horas, minutos] = horaInicio.split(':').map(Number);
+                        const inicioEnMinutos = horas * 60 + minutos;
+                        const finEnMinutos = inicioEnMinutos + duracion;
+                        
+                        const horasFin = Math.floor(finEnMinutos / 60);
+                        const minutosFin = finEnMinutos % 60;
+                        
+                        const horaFin = `${String(horasFin).padStart(2, '0')}:${String(minutosFin).padStart(2, '0')}`;
+                        
+                        setNuevoTurno({ 
+                          ...nuevoTurno, 
+                          hora_inicio: horaInicio,
+                          hora_fin: horaFin,
+                          duracion_min: duracion
+                        });
+                      }}
                     >
                       <option value="" disabled hidden>Seleccionar hora</option>
                       {horarios.map((hora) => (
@@ -587,7 +664,24 @@ const ShiftBookingApp = () => {
                   </div>
                 </div>
 
-                <Button className="w-full" onClick={crearTurno}>
+                <Button
+                  className="w-full"
+                  onClick={crearTurno}
+                  disabled={
+                    // Campos obligatorios del turno
+                    !nuevoTurno.servicio_id ||
+                    !nuevoTurno.empleado_id ||
+                    !nuevoTurno.fecha ||
+                    !nuevoTurno.hora_inicio ||  // ✅ Solo validar hora_inicio
+                  
+                    // Si es cliente nuevo, todos sus campos son obligatorios
+                    (clienteExistente === false &&
+                      (!nuevoCliente.nombre ||
+                      !nuevoCliente.apellido ||
+                      !nuevoCliente.email ||
+                      !nuevoCliente.telefono))
+                  }
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   Reservar Turno
                 </Button>

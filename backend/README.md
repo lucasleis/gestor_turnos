@@ -72,3 +72,6 @@ INSERT INTO peluquerias (id, nombre) VALUES (1, 'Peluquería Central');
 ```
 SELECT * FROM empleados;
 ```
+
+
+En la db, en la table clientes, el dni debe ser el id.
