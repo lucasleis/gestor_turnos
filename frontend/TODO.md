@@ -1,6 +1,5 @@
 TODO
 
-1. Insertar reserva de turno
-2. Anular turno siguiente a uno mayor a 30 mins
-3. Permitir reservar turno para barber "Indistinto"
-4. La funcion generarHorarios genere los turnos a partir del tiempo de duracion del servicio
+1. Agregar reserva de turnos y no mostrar horarios no disponibles
+2. Permitir reservar turno para barber "Indistinto"
+3. Cancelar turno

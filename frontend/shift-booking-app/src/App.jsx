@@ -138,7 +138,7 @@ const ShiftBookingApp = () => {
   const [turnoEditar, setTurnoEditar] = useState(null);
 
   // Estados de formularios de modales
-  const [nuevoCliente, setNuevoCliente] = useState({ nombre: '', telefono: '', email: '' });
+  const [nuevoCliente, setNuevoCliente] = useState({ dni: '', nombre: '', apellido: '', telefono: '', email: '' });
   const [nuevoEmpleado, setNuevoEmpleado] = useState({ nombre: '', especialidad: '' });
   const [nuevoServicio, setNuevoServicio] = useState({ nombre: '', duracion_min: '', precio: '' });
 
@@ -182,7 +182,6 @@ const ShiftBookingApp = () => {
 
   // Crear turno
   const crearTurno = async () => {
-    console.log("000 - iniciar creación de turno");
 
     console.log("nuevoTurno: ", nuevoTurno)
 
@@ -191,7 +190,7 @@ const ShiftBookingApp = () => {
       !nuevoTurno.servicio_id ||
       !nuevoTurno.empleado_id ||
       !nuevoTurno.fecha ||
-      !nuevoTurno.hora_inicio  // ✅ Solo validar hora_inicio
+      !nuevoTurno.hora_inicio  
     ) {
       toast.error("Debe seleccionar Servicio, Empleado, Fecha y Hora antes de reservar.");
       return;
@@ -310,11 +309,14 @@ const ShiftBookingApp = () => {
       const response = await fetch(`${API_BASE}/clientes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoCliente)
+        body: JSON.stringify({
+          ...nuevoCliente,
+          dni: Number(nuevoCliente.dni)
+        })
       });
       
       if (response.ok) {
-        setNuevoCliente({ nombre: '', telefono: '', email: '' });
+        setNuevoCliente({ id:'', nombre: '', telefono: '', email: '' });
         setModalCliente(false);
         fetchData();
       }
@@ -772,6 +774,7 @@ const ShiftBookingApp = () => {
         </div>
 
         {/* Modales */}
+        {/*
         <Modal isOpen={modalCliente} onClose={() => setModalCliente(false)} title="Nuevo Cliente">
           <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
             <Input
@@ -901,6 +904,7 @@ const ShiftBookingApp = () => {
             </div>
           )}
         </Modal>
+        */}
 
       </div>
     </div>

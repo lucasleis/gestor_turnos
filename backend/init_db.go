@@ -12,38 +12,39 @@ import (
 )
 
 type Cliente struct {
-    ID       int    `json:"id"`
-    Nombre   string `json:"nombre"`
-    Telefono string `json:"telefono"`
-    Email    string `json:"email"`
+	ID       int    `json:"id"`
+	Nombre   string `json:"nombre"`
+	Apellido string `json:"apellido"`
+	Telefono string `json:"telefono"`
+	Email    string `json:"email"`
+	Dni      string `json:"dni"`
 }
 
 type Empleado struct {
-    ID          int    `json:"id"`
-    Nombre      string `json:"nombre"`
-    Especialidad string `json:"especialidad"`
+	ID           int    `json:"id"`
+	Nombre       string `json:"nombre"`
+	Especialidad string `json:"especialidad"`
 }
 
 type Servicio struct {
-    ID          int     `json:"id"`
-    Nombre      string  `json:"nombre"`
-    DuracionMin int     `json:"duracion_min"`
-    Precio      float64 `json:"precio"`
+	ID          int     `json:"id"`
+	Nombre      string  `json:"nombre"`
+	DuracionMin int     `json:"duracion_min"`
+	Precio      float64 `json:"precio"`
 }
 
 // Estructura mínima para mapear JSON
 type Turno struct {
-    ID         int    `json:"id"`
-    ClienteID  int    `json:"cliente_id"`
-    EmpleadoID int    `json:"empleado_id"`
-    ServicioID int    `json:"servicio_id"`
-    Fecha      string `json:"fecha"`        // "2025-08-20"
-    HoraInicio string `json:"hora_inicio"`  // "15:30"
-    HoraFin    string `json:"hora_fin"`     // "16:00"
-    Estado     string `json:"estado"`
-	DuracionMin int   `json:"duracion_min"`
+	ID          int    `json:"id"`
+	ClienteID   int    `json:"cliente_id"`
+	EmpleadoID  int    `json:"empleado_id"`
+	ServicioID  int    `json:"servicio_id"`
+	Fecha       string `json:"fecha"`       // "2025-08-20"
+	HoraInicio  string `json:"hora_inicio"` // "15:30"
+	HoraFin     string `json:"hora_fin"`    // "16:00"
+	Estado      string `json:"estado"`
+	DuracionMin int    `json:"duracion_min"`
 }
-
 
 func initDB() *sql.DB {
 	user := "admin"
