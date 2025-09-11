@@ -145,25 +145,15 @@ const ShiftBookingApp = () => {
   const [vistaActual, setVistaActual] = useState('tabla');
 
   // URL a acceder
-  const API_BASE = 'http://127.0.0.1:5000';
-
-  // Funciones de API
-  // const fetchData = async () => {
-  //   try {
-  //     const [turnosRes, clientesRes, empleadosRes, serviciosRes] = await Promise.all([
-  //       fetch(`${API_BASE}/turnos`),
-  //       fetch(`${API_BASE}/clientes`),
-  //       fetch(`${API_BASE}/barbers`),
-  //       fetch(`${API_BASE}/services`)
-  //     ]);
+  const API_BASE = 'http://127.0.0.1:2020';
 
   const fetchData = async () => {
     try {
       const responses = await Promise.all([
         // fetch(`${API_BASE}/turnos`),
         //fetch(`${API_BASE}/clientes`),
-        fetch(`${API_BASE}/barbers`),
-        fetch(`${API_BASE}/services`)
+        fetch(`${API_BASE}/empleados`),
+        fetch(`${API_BASE}/servicios`)
       ]);
 
       // Verificamos que todos los fetch respondieron correctamente
@@ -324,22 +314,8 @@ const ShiftBookingApp = () => {
 
   // Obtener nombre por ID
   const getClienteName = (id) => clientes.find(c => c.id === id)?.nombre || 'N/A';
-  const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.name || 'N/A';
-  const getServicioName = (id) => servicios.find(s => s.id === id)?.name || 'N/A';
-
-
-  // Colores por estado
-  /*
-    const getEstadoColor = (estado) => {
-      const colors = {
-        pendiente: "bg-yellow-500 text-white",
-        confirmado: "bg-green-500 text-white",
-        cancelado: "bg-red-500 text-white",
-        completado: "bg-blue-500 text-white",
-      };
-      return colors[estado] || "bg-gray-500 text-white";
-    };
-  */  
+  const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.nombre || 'N/A';
+  const getServicioName = (id) => servicios.find(s => s.id === id)?.nombre || 'N/A';
 
   // Vista de calendario simplificada
   const VistaCalendario = () => {
@@ -385,23 +361,37 @@ const ShiftBookingApp = () => {
   const max = maxDate.toISOString().split("T")[0];
 
   // Horario
-  const generarHorarios = () => {
+  const generarHorarios = (fechaSeleccionada) => {
     const horarios = [];
     const inicio = 10; // 10 AM
     const fin = 19;    // 19 horas (7 PM)
+
+    const ahora = new Date();
+    const hoy = ahora.toISOString().split("T")[0]; // yyyy-mm-dd
+
     for (let h = inicio; h <= fin; h++) {
       for (let m = 0; m < 60; m += 30) {
-        // No exceder 19:30
         if (h === fin && m > 30) break;
+
         const horaStr = String(h).padStart(2, "0");
         const minStr = String(m).padStart(2, "0");
-        horarios.push(`${horaStr}:${minStr}`);
+        const horario = `${horaStr}:${minStr}`;
+
+        // --- Validación: si es hoy, no permitir horarios pasados ---
+        if (fechaSeleccionada === hoy) {
+          const horaTurno = new Date(`${hoy}T${horaStr}:${minStr}:00`);
+          if (horaTurno <= ahora) {
+            continue; // saltamos horarios pasados
+          }
+        }
+
+        horarios.push(horario);
       }
     }
     return horarios;
   };
-  
-  const horarios = generarHorarios();
+
+  const horarios = generarHorarios(nuevoTurno.fecha || hoy);
 
   // Busqueda de cliente por DNI
   const [clienteExistente, setClienteExistente] = useState(null); 
@@ -413,7 +403,7 @@ const ShiftBookingApp = () => {
       <header className="header">
         <h1>
           <Scissors size={24} /> 
-          Sistema de Gestión - nombre_del_lugar{}
+          Sistema de Gestión - nombre_negocio{}
         </h1>
         <DarkModeToggle />
       </header>
@@ -547,7 +537,7 @@ const ShiftBookingApp = () => {
                   >
                     {servicios.map(servicio => (
                       <option key={servicio.id} value={servicio.id}>
-                        {servicio.name} {/* - ${servicio.precio ?? ''} */}
+                        {servicio.nombre} {/* - ${servicio.precio ?? ''} */}
                       </option>
                     ))}
                   </Select>
@@ -565,7 +555,7 @@ const ShiftBookingApp = () => {
                   >
                     {empleados.map((empleado) => (
                       <option key={empleado.id} value={empleado.id}>
-                        {empleado.name}
+                        {empleado.nombre}
                       </option>
                     ))}
                   </Select>

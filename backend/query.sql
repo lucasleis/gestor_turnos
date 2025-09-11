@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS empleados (
 CREATE TABLE IF NOT EXISTS servicios (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    duracion_minutos INT NOT NULL, -- en minutos
+    duracion_min INT NOT NULL, -- en minutos
     precio NUMERIC(10,2) NOT NULL
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS turnos (
     servicio_id INT REFERENCES servicios(id),
     fecha DATE NOT NULL,
     hora_inicio TIME NOT NULL,
-    duracion_minutos INTEGER NOT NULL,
+    duracion_min INTEGER NOT NULL,
     hora_fin TIME NOT NULL,
     notas TEXT,
     estado VARCHAR(20) DEFAULT 'pendiente'  -- pendiente, confirmado, cancelado, completado

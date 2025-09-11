@@ -2,6 +2,8 @@ package main
 
 import (
     "github.com/gin-gonic/gin"
+    "github.com/gin-contrib/cors"
+    "time"
     // "net/http"
 )
 
@@ -9,6 +11,15 @@ func main() {
     db := initDB() // inicializar conexión y schema
 
     r := gin.Default()
+
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
 
     // CRUD clientes            // VERIFICADO
     r.GET("/clientes", func(c *gin.Context) { getClientes(c, db) })
