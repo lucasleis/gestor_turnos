@@ -120,15 +120,17 @@ const ShiftBookingApp = () => {
     estado: 'pendiente'
   });
 
-  const handleAddTurno = () => {
-    if (!nuevoTurno.cliente || !nuevoTurno.servicio || !nuevoTurno.hora) {
-      toast.error("Faltan campos obligatorios");
-      return;
-    }
-    setTurnos([...turnos, { ...nuevoTurno, id: Date.now() }]);
-    setNuevoTurno({ cliente: "", empleado: "", servicio: "", hora: "", estado: "pendiente" });
-    toast.success("Turno agregado ✅");
-  };
+  /*
+    const handleAddTurno = () => {
+      if (!nuevoTurno.cliente || !nuevoTurno.servicio || !nuevoTurno.hora) {
+        toast.error("Faltan campos obligatorios");
+        return;
+      }
+      setTurnos([...turnos, { ...nuevoTurno, id: Date.now() }]);
+      setNuevoTurno({ cliente: "", empleado: "", servicio: "", hora: "", estado: "pendiente" });
+      toast.success("Turno agregado ✅");
+    };
+  */
 
   // Estados de modales
   const [modalCliente, setModalCliente] = useState(false);
@@ -262,6 +264,7 @@ const ShiftBookingApp = () => {
     }
   };
 
+  /*
   // Actualizar turno
   const actualizarTurno = async () => {
     try {
@@ -406,6 +409,8 @@ const ShiftBookingApp = () => {
       </div>
     );
   };
+
+  */
 
 
   // Fecha 
