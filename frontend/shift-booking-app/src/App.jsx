@@ -80,31 +80,32 @@ const CardContent = ({ children }) => (
 );
 
 
+/*
+  // Modal Component
+  const Modal = ({ isOpen, onClose, title, children }) => {
+    if (!isOpen) return null;
 
-// Modal Component
-const Modal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
-          <button onClick={onClose} className="modal-close">
-            <X size={16} />
-          </button>
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2 className="modal-title">{title}</h2>
+            <button onClick={onClose} className="modal-close">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="modal-body">{children}</div>
         </div>
-        <div className="modal-body">{children}</div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+*/
 
 // Componente principal
 const ShiftBookingApp = () => {
   // Estados principales
   const [turnos, setTurnos] = useState([]);
-  const [clientes, setClientes] = useState([]);
+  //const [clientes, setClientes] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [servicios, setServicios] = useState([]);
   
@@ -133,16 +134,16 @@ const ShiftBookingApp = () => {
   */
 
   // Estados de modales
-  const [modalCliente, setModalCliente] = useState(false);
-  const [modalEmpleado, setModalEmpleado] = useState(false);
-  const [modalServicio, setModalServicio] = useState(false);
-  const [modalEditTurno, setModalEditTurno] = useState(false);
-  const [turnoEditar, setTurnoEditar] = useState(null);
+  // const [modalCliente, setModalCliente] = useState(false);
+  // const [modalEmpleado, setModalEmpleado] = useState(false);
+  // const [modalServicio, setModalServicio] = useState(false);
+  // const [modalEditTurno, setModalEditTurno] = useState(false);
+  // const [turnoEditar, setTurnoEditar] = useState(null);
 
   // Estados de formularios de modales
   const [nuevoCliente, setNuevoCliente] = useState({ dni: '', nombre: '', apellido: '', telefono: '', email: '' });
-  const [nuevoEmpleado, setNuevoEmpleado] = useState({ nombre: '', especialidad: '' });
-  const [nuevoServicio, setNuevoServicio] = useState({ nombre: '', duracion_min: '', precio: '' });
+  // const [nuevoEmpleado, setNuevoEmpleado] = useState({ nombre: '', especialidad: '' });
+  // const [nuevoServicio, setNuevoServicio] = useState({ nombre: '', duracion_min: '', precio: '' });
 
   // Vista actual
   const [vistaActual, setVistaActual] = useState('tabla');
@@ -265,150 +266,150 @@ const ShiftBookingApp = () => {
   };
 
   /*
-  // Actualizar turno
-  const actualizarTurno = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/turnos/${turnoEditar.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...turnoEditar,
-          cliente_id: parseInt(turnoEditar.cliente_id),
-          empleado_id: parseInt(turnoEditar.empleado_id),
-          servicio_id: parseInt(turnoEditar.servicio_id)
-        })
-      });
-      
-      if (response.ok) {
-        setModalEditTurno(false);
-        setTurnoEditar(null);
-        fetchData();
+    // Actualizar turno
+    const actualizarTurno = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/turnos/${turnoEditar.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...turnoEditar,
+            cliente_id: parseInt(turnoEditar.cliente_id),
+            empleado_id: parseInt(turnoEditar.empleado_id),
+            servicio_id: parseInt(turnoEditar.servicio_id)
+          })
+        });
+
+        if (response.ok) {
+          setModalEditTurno(false);
+          setTurnoEditar(null);
+          fetchData();
+        }
+      } catch (error) {
+        console.error('Error updating turno:', error);
       }
-    } catch (error) {
-      console.error('Error updating turno:', error);
-    }
-  };
+    };
 
-  // Eliminar turno
-  const eliminarTurno = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar este turno?')) return;
-    
-    try {
-      const response = await fetch(`${API_BASE}/turnos/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        fetchData();
+    // Eliminar turno
+    const eliminarTurno = async (id) => {
+      if (!confirm('¿Estás seguro de eliminar este turno?')) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/turnos/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          fetchData();
+        }
+      } catch (error) {
+        console.error('Error deleting turno:', error);
       }
-    } catch (error) {
-      console.error('Error deleting turno:', error);
-    }
-  };
+    };
 
-  // Crear cliente
-  const crearCliente = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/clientes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...nuevoCliente,
-          dni: Number(nuevoCliente.dni)
-        })
-      });
-      
-      if (response.ok) {
-        setNuevoCliente({ id:'', nombre: '', telefono: '', email: '' });
-        setModalCliente(false);
-        fetchData();
+    // Crear cliente
+    const crearCliente = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/clientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...nuevoCliente,
+            dni: Number(nuevoCliente.dni)
+          })
+        });
+
+        if (response.ok) {
+          setNuevoCliente({ id:'', nombre: '', telefono: '', email: '' });
+          setModalCliente(false);
+          fetchData();
+        }
+      } catch (error) {
+        console.error('Error creating cliente:', error);
       }
-    } catch (error) {
-      console.error('Error creating cliente:', error);
-    }
-  };
+    };
 
-  // Crear empleado
-  const crearEmpleado = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/empleados`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoEmpleado)
-      });
-      
-      if (response.ok) {
-        setNuevoEmpleado({ nombre: '', especialidad: '' });
-        setModalEmpleado(false);
-        fetchData();
+    // Crear empleado
+    const crearEmpleado = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/empleados`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevoEmpleado)
+        });
+
+        if (response.ok) {
+          setNuevoEmpleado({ nombre: '', especialidad: '' });
+          setModalEmpleado(false);
+          fetchData();
+        }
+      } catch (error) {
+        console.error('Error creating empleado:', error);
       }
-    } catch (error) {
-      console.error('Error creating empleado:', error);
-    }
-  };
+    };
 
-  // Crear servicio
-  const crearServicio = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/servicios`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...nuevoServicio,
-          duracion_min: parseInt(nuevoServicio.duracion_min),
-          precio: parseFloat(nuevoServicio.precio)
-        })
-      });
-      
-      if (response.ok) {
-        setNuevoServicio({ nombre: '', duracion_min: '', precio: '' });
-        setModalServicio(false);
-        fetchData();
+    // Crear servicio
+    const crearServicio = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/servicios`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...nuevoServicio,
+            duracion_min: parseInt(nuevoServicio.duracion_min),
+            precio: parseFloat(nuevoServicio.precio)
+          })
+        });
+
+        if (response.ok) {
+          setNuevoServicio({ nombre: '', duracion_min: '', precio: '' });
+          setModalServicio(false);
+          fetchData();
+        }
+      } catch (error) {
+        console.error('Error creating servicio:', error);
       }
-    } catch (error) {
-      console.error('Error creating servicio:', error);
-    }
-  };
+    };
 
-  // Obtener nombre por ID
-  const getClienteName = (id) => clientes.find(c => c.id === id)?.nombre || 'N/A';
-  const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.nombre || 'N/A';
-  const getServicioName = (id) => servicios.find(s => s.id === id)?.nombre || 'N/A';
+    // Obtener nombre por ID
+    const getClienteName = (id) => clientes.find(c => c.id === id)?.nombre || 'N/A';
+    const getEmpleadoName = (id) => empleados.find(e => e.id === id)?.nombre || 'N/A';
+    const getServicioName = (id) => servicios.find(s => s.id === id)?.nombre || 'N/A';
 
-  // Vista de calendario simplificada
-  const VistaCalendario = () => {
-    const turnosHoy = turnos.filter(t => t.fecha === new Date().toISOString().split('T')[0]);
+    // Vista de calendario simplificada
+    const VistaCalendario = () => {
+      const turnosHoy = turnos.filter(t => t.fecha === new Date().toISOString().split('T')[0]);
 
-    return (
-      <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
-        <h3 className="text-lg font-semibold">Agenda de Hoy</h3>
-        <div className="grid gap-2">
-          {turnosHoy.length === 0 ? (
-            <p className="text-slate-500 text-center py-8">No hay turnos para hoy</p>
-          ) : (
-            turnosHoy.map((turno) => (
-              <Card key={turno.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Clock className="h-4 w-4 text-slate-500" />
-                    <span className="font-medium">{turno.hora_inicio} - {turno.hora_fin}</span>
+      return (
+        <div className="style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)'}}">
+          <h3 className="text-lg font-semibold">Agenda de Hoy</h3>
+          <div className="grid gap-2">
+            {turnosHoy.length === 0 ? (
+              <p className="text-slate-500 text-center py-8">No hay turnos para hoy</p>
+            ) : (
+              turnosHoy.map((turno) => (
+                <Card key={turno.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium">{turno.hora_inicio} - {turno.hora_fin}</span>
+                    </div>
+                    <span className={`badge badge-${turno.estado}`}>
+                      {turno.estado}
+                    </span>
                   </div>
-                  <span className={`badge badge-${turno.estado}`}>
-                    {turno.estado}
-                  </span>
-                </div>
-                <div className="mt-2 text-sm text-slate-600">
-                  <p><strong>Cliente:</strong> {getClienteName(turno.cliente_id)}</p>
-                  <p><strong>Empleado:</strong> {getEmpleadoName(turno.empleado_id)}</p>
-                  <p><strong>Servicio:</strong> {getServicioName(turno.servicio_id)}</p>
-                </div>
-              </Card>
-            ))
-          )}
+                  <div className="mt-2 text-sm text-slate-600">
+                    <p><strong>Cliente:</strong> {getClienteName(turno.cliente_id)}</p>
+                    <p><strong>Empleado:</strong> {getEmpleadoName(turno.empleado_id)}</p>
+                    <p><strong>Servicio:</strong> {getServicioName(turno.servicio_id)}</p>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    };
 
   */
 
@@ -610,7 +611,7 @@ const ShiftBookingApp = () => {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4"> {/* Contenedor fila fecha + hora */}
+                <div className="grid grid-cols-2 gap-4"> {/* Fecha + Hora */}
                   <div>
                     <h4 className="heading-small">Fecha</h4>
                     <Input
