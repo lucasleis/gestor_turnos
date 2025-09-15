@@ -420,44 +420,27 @@ const ShiftBookingApp = () => {
   maxDate.setMonth(maxDate.getMonth() + 3);
   const max = maxDate.toISOString().split("T")[0];
 
-  // Horario dinámico en base al servicio
-  const generarHorarios = (fechaSeleccionada, duracionMin = 30) => {
-    const horarios = [];
-
-    const inicio = new Date();
-    inicio.setHours(10, 0, 0, 0); // 10:00 AM
-
-    const fin = new Date();
-    fin.setHours(19, 30, 0, 0); // hasta las 19:30
-
-    const ahora = new Date();
-    const hoy = ahora.toISOString().split("T")[0]; // yyyy-mm-dd
-
-    let current = new Date(inicio);
-
-    while (current <= fin) {
-      const horaStr = String(current.getHours()).padStart(2, "0");
-      const minStr = String(current.getMinutes()).padStart(2, "0");
-      const horario = `${horaStr}:${minStr}`;
-
-      // --- Validación: si es hoy, no permitir horarios pasados ---
-      if (fechaSeleccionada === hoy) {
-        if (current <= ahora) {
-          current.setMinutes(current.getMinutes() + duracionMin);
-          continue;
-        }
-      }
-
-      horarios.push(horario);
-      current.setMinutes(current.getMinutes() + duracionMin);
-    }
-
-    return horarios;
-  };
-
+  // Horario dinámico en base al servicio y turnos disponibles
   const servicioSeleccionado = servicios.find(s => s.id === parseInt(nuevoTurno.servicio_id));
   const duracion = servicioSeleccionado ? servicioSeleccionado.duracion_min : 30;
-  const horarios = generarHorarios(nuevoTurno.fecha || hoy, duracion);
+  const [horariosDisponibles, setHorariosDisponibles] = useState([]);
+  useEffect(() => {
+    if (!nuevoTurno.empleado_id || !nuevoTurno.servicio_id || !nuevoTurno.fecha) {
+      setHorariosDisponibles([]); // limpio cuando falta info
+      return;
+    }
+  
+    fetch(`${API_BASE}/horarios_disponibles?empleado_id=${nuevoTurno.empleado_id}&servicio_id=${nuevoTurno.servicio_id}&fecha=${nuevoTurno.fecha}`)
+      .then(res => res.json())
+      .then(data => {
+        setHorariosDisponibles(data.disponibles || []);
+      })
+      .catch(err => {
+        console.error("Error cargando horarios:", err);
+        setHorariosDisponibles([]);
+      });
+  }, [nuevoTurno.empleado_id, nuevoTurno.servicio_id, nuevoTurno.fecha]);
+  
 
   // Busqueda de cliente por DNI
   const [clienteExistente, setClienteExistente] = useState(null); 
@@ -642,19 +625,9 @@ const ShiftBookingApp = () => {
                   <div>
                     <h4 className="heading-small">Hora</h4>
                     <Select
-                      value={nuevoTurno.hora_inicio || ""} // ✅ Cambiar de hora_fin a hora_inicio
-                      onChange={(e) => {duracion_min: duracion
-                        const horaInicio = e.target.value;
-                        // Calcular hora fin automáticamente basado en duración del servicio
-                        const [horas, minutos] = horaInicio.split(':').map(Number);
-                        const inicioEnMinutos = horas * 60 + minutos;
-                        const finEnMinutos = inicioEnMinutos + duracion;
-                        
-                        const horasFin = Math.floor(finEnMinutos / 60);
-                        const minutosFin = finEnMinutos % 60;
-                        
-                        const horaFin = `${String(horasFin).padStart(2, '0')}:${String(minutosFin).padStart(2, '0')}`;
-                        
+                      value={nuevoTurno.hora_inicio && nuevoTurno.hora_fin ? `${nuevoTurno.hora_inicio} - ${nuevoTurno.hora_fin}` : ""}
+                      onChange={(e) => {
+                        const [horaInicio, horaFin] = e.target.value.split(" - ");
                         setNuevoTurno({ 
                           ...nuevoTurno, 
                           hora_inicio: horaInicio,
@@ -664,8 +637,8 @@ const ShiftBookingApp = () => {
                       }}
                     >
                       <option value="" disabled hidden>Seleccionar hora</option>
-                      {horarios.map((hora) => (
-                        <option key={hora} value={hora}>{hora}</option>
+                      {horariosDisponibles.map((slot) => (
+                        <option key={slot} value={slot}>{slot}</option>
                       ))}
                     </Select>
                   </div>

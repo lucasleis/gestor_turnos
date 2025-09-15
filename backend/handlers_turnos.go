@@ -124,7 +124,7 @@ func combinarFechaHoraStr(fecha, horaInicio, horaFin string) (string, string, er
 	return fechaHoraInicio.Format(formatoFinal), fechaHoraFin.Format(formatoFinal), nil
 }
 
-// Función que verifica si un slot está ocupado
+// Función que verifica si un turno está tomado
 func estaOcupado(inicio, fin time.Time, turnos []Turno, fecha string) bool {
 	// fmt.Println("Entra estaOcupado")
 
@@ -158,7 +158,7 @@ func estaOcupado(inicio, fin time.Time, turnos []Turno, fecha string) bool {
 }
 
 
-
+// GET /horarios_disponibles?empleado_id=1&servicio_id=1&fecha=2025-09-16
 func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	empleadoID := c.Query("empleado_id")
 	servicioID := c.Query("servicio_id")
