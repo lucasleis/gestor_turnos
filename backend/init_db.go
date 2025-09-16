@@ -23,6 +23,7 @@ type Cliente struct {
 type Empleado struct {
 	ID           int    `json:"id"`
 	Nombre       string `json:"nombre"`
+	Apellido     string `json:"apellido"`
 	Especialidad string `json:"especialidad"`
 }
 

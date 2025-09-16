@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS empleados (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    especialidad VARCHAR(100)
+    apellido VARCHAR(100) NOT NULL
+    -- especialidad VARCHAR(100)
 );
 
 -- Servicios

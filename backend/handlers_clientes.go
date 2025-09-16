@@ -64,7 +64,7 @@ func createCliente(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	query := `INSERT INTO clientes (id, nombre, apellido, telefono, email) VALUES ($1, $2, $3, $4) RETURNING id`
+	query := `INSERT INTO clientes (id, nombre, apellido, telefono, email) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	err := db.QueryRow(query, cl.Dni, cl.Nombre, cl.Apellido, cl.Telefono, cl.Email).Scan(&cl.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
