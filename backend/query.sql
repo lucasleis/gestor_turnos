@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS clientes (
     id SERIAL PRIMARY KEY,          -- dni
     nombre VARCHAR(50) NOT NULL,
-    Apellido VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE,
     telefono VARCHAR(20) UNIQUE
 );
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS empleados (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
     especialidad VARCHAR(100)
 );
 

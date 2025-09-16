@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -157,8 +157,8 @@ func estaOcupado(inicio, fin time.Time, turnos []Turno, fecha string) bool {
 	return false
 }
 
-
 // GET /horarios_disponibles?empleado_id=1&servicio_id=1&fecha=2025-09-16
+/*
 func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	empleadoID := c.Query("empleado_id")
 	servicioID := c.Query("servicio_id")
@@ -245,6 +245,90 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"disponibles": slots})
 }
+*/
+// También soporta: /horarios_disponibles?empleado_id=all&servicio_id=1&fecha=2025-09-16
+func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
+	empleadoID := c.Query("empleado_id")
+	servicioID := c.Query("servicio_id")
+	fecha := c.Query("fecha")
+
+	layoutDate := "2006-01-02"
+
+	if empleadoID == "" || servicioID == "" || fecha == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empleado_id, servicio_id y fecha son requeridos"})
+		return
+	}
+
+	// 1. Obtener duración del servicio
+	var duracion int
+	err := db.QueryRow(`SELECT duracion_min FROM servicios WHERE id = $1`, servicioID).Scan(&duracion)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error obteniendo duración del servicio"})
+		return
+	}
+
+	// 2. Obtener turnos ocupados (según empleado o todos)
+	var rows *sql.Rows
+	if empleadoID == "all" {
+		rows, err = db.Query(`
+			SELECT hora_inicio, hora_fin, fecha
+			FROM turnos
+			WHERE fecha = $1 AND estado != 'cancelado'`,
+			fecha)
+	} else {
+		rows, err = db.Query(`
+			SELECT hora_inicio, hora_fin, fecha
+			FROM turnos
+			WHERE empleado_id = $1 AND fecha = $2 AND estado != 'cancelado'`,
+			empleadoID, fecha)
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error consultando turnos"})
+		return
+	}
+	defer rows.Close()
+
+	var turnos []Turno
+	for rows.Next() {
+		var t Turno
+		if err := rows.Scan(&t.HoraInicio, &t.HoraFin, &t.Fecha); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		fechaInicio, fechaFin, err := combinarFechaHoraStr(fecha, t.HoraInicio, t.HoraFin)
+		if err != nil {
+			panic(err)
+		}
+
+		t.HoraInicio = fechaInicio
+		t.HoraFin = fechaFin
+		turnos = append(turnos, t)
+	}
+
+	// 3. Definir rango laboral (hardcodeado por ahora)
+	layout := "15:04"
+	workStart, _ := time.Parse(layout, "09:00")
+	workEnd, _ := time.Parse(layout, "20:00")
+
+	// 4. Ajustar fecha
+	fechaParsed, _ := time.Parse(layoutDate, fecha)
+	workStart = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workStart.Hour(), workStart.Minute(), 0, 0, time.Local)
+	workEnd = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workEnd.Hour(), workEnd.Minute(), 0, 0, time.Local)
+
+	// 5. Generar slots disponibles
+	slots := []string{}
+	dur := time.Duration(duracion) * time.Minute
+	for slotStart := workStart; slotStart.Add(dur).Before(workEnd) || slotStart.Add(dur).Equal(workEnd); slotStart = slotStart.Add(dur) {
+		slotEnd := slotStart.Add(dur)
+		if !estaOcupado(slotStart, slotEnd, turnos, fecha) {
+			slots = append(slots, fmt.Sprintf("%s - %s", slotStart.Format("15:04"), slotEnd.Format("15:04")))
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"disponibles": slots})
+}
+
 
 // GET /turnos
 func getTurnos(c *gin.Context, db *sql.DB) {
