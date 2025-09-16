@@ -2,7 +2,7 @@ TODO
 
 1. Permitir reservar turno para barber "Indistinto"
 2. Cancelar turno
-3. Cuando se selecciona empleado, vaya a buscar horarios. ahora solo busca cuando se define fecha. 
+3. Cuando se guarda el turno, no estan funcionando los horarios
 
 Prueba
 1. Analizar que es mas eficiente

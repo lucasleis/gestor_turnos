@@ -85,16 +85,23 @@ const ShiftBookingApp = () => {
   const [empleados, setEmpleados] = useState([]);
   const [servicios, setServicios] = useState([]);
   
-  // ⭐ NUEVO: Estado para controlar la vista actual
+  // Estado para controlar la vista actual
   const [vistaActual, setVistaActual] = useState('formulario'); // 'formulario' | 'confirmacion'
   const [turnoConfirmado, setTurnoConfirmado] = useState(null); // Datos del turno confirmado
+
+  // Fecha 
+  const hoy = new Date().toISOString().split("T")[0];
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
+  const max = maxDate.toISOString().split("T")[0];
+  
   
   // Estados de formulario de turno
   const [nuevoTurno, setNuevoTurno] = useState({
     cliente_id: '',
     empleado_id: '',
     servicio_id: '',
-    fecha: '',
+    fecha: hoy,   // arranca con fecha de hoy
     hora_inicio: '',
     hora_fin: '',
     duracion_min: '',
@@ -199,7 +206,7 @@ const ShiftBookingApp = () => {
 
       const dataTurno = await resTurno.json();
 
-      // ⭐ NUEVO: Preparar datos para la página de confirmación
+      // Preparar datos para la página de confirmación
       const clienteNombre = clienteExistente ? 
         `${clienteExistente.nombre} ${clienteExistente.apellido || ''}`.trim() :
         `${nuevoCliente.nombre} ${nuevoCliente.apellido || ''}`.trim();
@@ -220,7 +227,7 @@ const ShiftBookingApp = () => {
       // Actualizar estados
       setTurnos([...turnos, dataTurno]);
       setTurnoConfirmado(turnoConfirmadoData);
-      setVistaActual('confirmacion'); // ⭐ Cambiar a la vista de confirmación
+      setVistaActual('confirmacion'); // Cambiar a la vista de confirmación
       
       // Resetear formularios
       setNuevoTurno({
@@ -244,17 +251,11 @@ const ShiftBookingApp = () => {
     }
   };
 
-  // ⭐ NUEVO: Función para volver al formulario
+  // Función para volver al formulario
   const volverAlFormulario = () => {
     setVistaActual('formulario');
     setTurnoConfirmado(null);
   };
-
-  // Fecha 
-  const hoy = new Date().toISOString().split("T")[0];
-  const maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 3);
-  const max = maxDate.toISOString().split("T")[0];
 
   // Horarios disponibles
   const servicioSeleccionado = servicios.find(
@@ -286,7 +287,7 @@ const ShiftBookingApp = () => {
   // Busqueda de cliente por DNI
   const [clienteExistente, setClienteExistente] = useState(null); 
 
-  // ⭐ NUEVO: Renderizado condicional según la vista actual
+  // Renderizado condicional según la vista actual
   if (vistaActual === 'confirmacion' && turnoConfirmado) {
     return <TurnoConfirmado turnoData={turnoConfirmado} onVolverInicio={volverAlFormulario} />;
   }

@@ -179,7 +179,7 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	// 2. Obtener turnos ocupados (según empleado o todos)
+	// 2. Obtener turnos ocupados
 	var rows *sql.Rows
 	if empleadoID == "all" {
 		rows, err = db.Query(`
@@ -218,7 +218,7 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 		turnos = append(turnos, t)
 	}
 
-	// 3. Definir rango laboral (hardcodeado por ahora)
+	// 3. Definir rango laboral
 	layout := "15:04"
 	workStart, _ := time.Parse(layout, "09:00")
 	workEnd, _ := time.Parse(layout, "20:00")
@@ -227,6 +227,20 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	fechaParsed, _ := time.Parse(layoutDate, fecha)
 	workStart = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workStart.Hour(), workStart.Minute(), 0, 0, time.Local)
 	workEnd = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workEnd.Hour(), workEnd.Minute(), 0, 0, time.Local)
+
+	// 🔥 4.1 Si la fecha es hoy → ajustar inicio al siguiente bloque disponible
+	hoy := time.Now().In(time.Local)
+	if fechaParsed.Year() == hoy.Year() && fechaParsed.YearDay() == hoy.YearDay() {
+		ahora := hoy
+
+		// calcular el próximo múltiplo de la duración (ej: si ahora es 17:01 y la duración es 30, empezar 17:30)
+		minutes := ((ahora.Minute()/duracion)+1) * duracion
+		nextSlot := time.Date(hoy.Year(), hoy.Month(), hoy.Day(), ahora.Hour(), 0, 0, 0, time.Local).Add(time.Duration(minutes) * time.Minute)
+
+		if nextSlot.After(workStart) {
+			workStart = nextSlot
+		}
+	}
 
 	// 5. Generar slots disponibles
 	slots := []string{}
