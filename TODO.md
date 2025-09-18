@@ -2,7 +2,6 @@ TODO
 
 1. Permitir reservar turno para barber "Indistinto"
 2. Cancelar turno
-3. Arreglar reservar turno
 
 Prueba
 1. Analizar que es mas eficiente

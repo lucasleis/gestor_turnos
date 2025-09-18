@@ -191,7 +191,7 @@ const ShiftBookingApp = () => {
         ...nuevoTurno,
         cliente_id: Number(clienteId),
         servicio_id: Number(nuevoTurno.servicio_id),
-        empleado_id: nuevoTurno.empleado_id_real || nuevoTurno.empleado_id,
+        empleado_id: Number(nuevoTurno.empleado_id_real || nuevoTurno.empleado_id),
         estado: 'confirmado'
       };
 
