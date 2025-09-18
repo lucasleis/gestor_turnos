@@ -253,6 +253,17 @@ const ShiftBookingApp = () => {
 
   // Función para volver al formulario
   const volverAlFormulario = () => {
+    const hoy = new Date().toISOString().split("T")[0];
+    setNuevoTurno({
+      cliente_id: '',
+      empleado_id: '',
+      servicio_id: '',
+      fecha: hoy,  
+      hora_inicio: '',
+      hora_fin: '',
+      duracion_min: '',
+      estado: 'pendiente'
+    });
     setVistaActual('formulario');
     setTurnoConfirmado(null);
   };
