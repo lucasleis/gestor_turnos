@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -157,6 +158,46 @@ func estaOcupado(inicio, fin time.Time, turnos []Turno, fecha string) bool {
 	return false
 }
 
+func empleadoOcupado(db *sql.DB, empleadoID int, fecha string, inicio, fin time.Time) bool {
+    layout := "2006-01-02 15:04:05 -0700 -07"
+
+    rows, err := db.Query(`
+        SELECT hora_inicio, hora_fin 
+        FROM turnos
+        WHERE empleado_id = $1 
+          AND fecha = $2
+          AND estado != 'cancelado'`,
+        empleadoID, fecha)
+    if err != nil {
+        fmt.Println("Error consultando turnos:", err)
+        return true // si hay error, por seguridad consideramos ocupado
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var hiStr, hfStr string
+        if err := rows.Scan(&hiStr, &hfStr); err != nil {
+            fmt.Println("Error escaneando turno:", err)
+            continue
+        }
+
+        ocupadoInicio, err1 := time.Parse(layout, hiStr)
+        ocupadoFin, err2 := time.Parse(layout, hfStr)
+        if err1 != nil || err2 != nil {
+            fmt.Println("Error parseando horas:", err1, err2)
+            continue
+        }
+
+        // Solapamiento
+        if inicio.Before(ocupadoFin) && fin.After(ocupadoInicio) {
+            return true
+        }
+    }
+
+    return false
+}
+
+
 // GET /horarios_disponibles?empleado_id=1&servicio_id=1&fecha=2025-09-16
 // También soporta: /horarios_disponibles?empleado_id=all&servicio_id=1&fecha=2025-09-16
 func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
@@ -228,7 +269,7 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	workStart = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workStart.Hour(), workStart.Minute(), 0, 0, time.Local)
 	workEnd = time.Date(fechaParsed.Year(), fechaParsed.Month(), fechaParsed.Day(), workEnd.Hour(), workEnd.Minute(), 0, 0, time.Local)
 
-	// 🔥 4.1 Si la fecha es hoy → ajustar inicio al siguiente bloque disponible
+	// 4.1 Si la fecha es hoy → ajustar inicio al siguiente bloque disponible
 	hoy := time.Now().In(time.Local)
 	if fechaParsed.Year() == hoy.Year() && fechaParsed.YearDay() == hoy.YearDay() {
 		ahora := hoy
@@ -243,16 +284,66 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	}
 
 	// 5. Generar slots disponibles
-	slots := []string{}
+	type Slot struct {
+		Hora      string   `json:"hora"`
+		Empleados []int    `json:"empleados"`
+	}
+
+	var slots []Slot
 	dur := time.Duration(duracion) * time.Minute
-	for slotStart := workStart; slotStart.Add(dur).Before(workEnd) || slotStart.Add(dur).Equal(workEnd); slotStart = slotStart.Add(dur) {
-		slotEnd := slotStart.Add(dur)
-		if !estaOcupado(slotStart, slotEnd, turnos, fecha) {
-			slots = append(slots, fmt.Sprintf("%s - %s", slotStart.Format("15:04"), slotEnd.Format("15:04")))
+
+	if empleadoID == "all" {
+		// Traer todos los empleados
+		empRows, err := db.Query("SELECT id FROM empleados")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error obteniendo empleados"})
+			return
+		}
+		defer empRows.Close()
+
+		var empleados []int
+		for empRows.Next() {
+			var id int
+			empRows.Scan(&id)
+			empleados = append(empleados, id)
+		}
+
+		for slotStart := workStart; slotStart.Add(dur).Before(workEnd) || slotStart.Add(dur).Equal(workEnd); slotStart = slotStart.Add(dur) {
+			slotEnd := slotStart.Add(dur)
+			disponibles := []int{}
+			for _, empID := range empleados {
+				if !empleadoOcupado(db, empID, fecha, slotStart, slotEnd) {
+					disponibles = append(disponibles, empID)
+				}
+			}
+			if len(disponibles) > 0 {
+				slots = append(slots, Slot{
+					Hora:      fmt.Sprintf("%s - %s", slotStart.Format("15:04"), slotEnd.Format("15:04")),
+					Empleados: disponibles,
+				})
+			}
+		}
+	} else {
+		// comportamiento actual para un empleado específico
+		for slotStart := workStart; slotStart.Add(dur).Before(workEnd) || slotStart.Add(dur).Equal(workEnd); slotStart = slotStart.Add(dur) {
+			slotEnd := slotStart.Add(dur)
+			if !estaOcupado(slotStart, slotEnd, turnos, fecha) {
+				id, err := strconv.Atoi(empleadoID)
+				if err != nil {
+					// si no es número, podés decidir omitir o lanzar error
+					continue
+				}
+
+				slots = append(slots, Slot{
+					Hora:      fmt.Sprintf("%s - %s", slotStart.Format("15:04"), slotEnd.Format("15:04")),
+					Empleados: []int{id},
+				})
+			}
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"disponibles": slots})
+
 }
 
 

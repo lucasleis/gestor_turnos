@@ -111,6 +111,9 @@ const ShiftBookingApp = () => {
   // Estados de formularios de modales
   const [nuevoCliente, setNuevoCliente] = useState({ dni: '', nombre: '', apellido: '', telefono: '', email: '' });
 
+  // Empleado Indistinto -> Seleccionar empleado disponible
+  const [empleadosDisponiblesSlot, setEmpleadosDisponiblesSlot] = useState([]);
+
   // URL a acceder
   const API_BASE = 'http://127.0.0.1:2020';
 
@@ -188,7 +191,7 @@ const ShiftBookingApp = () => {
         ...nuevoTurno,
         cliente_id: Number(clienteId),
         servicio_id: Number(nuevoTurno.servicio_id),
-        empleado_id: Number(nuevoTurno.empleado_id),
+        empleado_id: nuevoTurno.empleado_id_real || nuevoTurno.empleado_id,
         estado: 'confirmado'
       };
 
@@ -279,6 +282,11 @@ const ShiftBookingApp = () => {
   useEffect(() => {
     if (!nuevoTurno.empleado_id || !nuevoTurno.servicio_id || !nuevoTurno.fecha) {
       setHorariosDisponibles([]);
+      return;
+    }
+  
+    // Si ya tenemos una hora seleccionada y solo estamos cambiando de empleado "all" a uno específico, no necesitamos recargar los horarios
+    if (nuevoTurno.hora_inicio && nuevoTurno.hora_fin && nuevoTurno.empleado_id !== "all") {
       return;
     }
   
@@ -479,25 +487,72 @@ const ShiftBookingApp = () => {
 
                   <div>
                     <h4 className="heading-small">Hora</h4>
+
                     <Select
-                      value={nuevoTurno.hora_inicio && nuevoTurno.hora_fin ? `${nuevoTurno.hora_inicio} - ${nuevoTurno.hora_fin}` : ""}
+                      value={
+                        nuevoTurno.hora_inicio && nuevoTurno.hora_fin
+                          ? JSON.stringify({hora: `${nuevoTurno.hora_inicio} - ${nuevoTurno.hora_fin}`, empleados: empleadosDisponiblesSlot})
+                          : ""
+                      }
                       onChange={(e) => {
-                        const [horaInicio, horaFin] = e.target.value.split(" - ");
-                        setNuevoTurno({ 
-                          ...nuevoTurno, 
+                        const slot = JSON.parse(e.target.value);
+                        const [horaInicio, horaFin] = slot.hora.split(" - ");
+
+                        setNuevoTurno((prev) => ({
+                          ...prev,
                           hora_inicio: horaInicio,
                           hora_fin: horaFin,
-                          duracion_min: duracion
-                        });
+                          duracion_min: duracion,
+                          empleado_id: prev.empleado_id === "all" ? "all" : prev.empleado_id,
+                          empleado_id_real: slot.empleados.includes(prev.empleado_id_real)
+                            ? prev.empleado_id_real
+                            : ""
+                        }));
+
+                        setEmpleadosDisponiblesSlot(slot.empleados); // ids de empleados libres
                       }}
                     >
                       <option value="" disabled hidden>Seleccionar hora</option>
                       {horariosDisponibles.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
+                        <option key={slot.hora} value={JSON.stringify(slot)}>
+                          {slot.hora}
+                        </option>
                       ))}
                     </Select>
                   </div>
                 </div>
+
+                {/*******************************************************/}
+                {/* Empleado Indistinto -> Elegir empleado disponible */}
+                {nuevoTurno.empleado_id === "all" && empleadosDisponiblesSlot.length > 0 && (
+                  <div>
+                    <h4 className="heading-small">Elegir empleado disponible</h4>
+                    <Select
+                      value={nuevoTurno.empleado_id_real || ""}
+                      onChange={(e) =>
+                        setNuevoTurno((prev) => ({
+                          ...prev,
+                          empleado_id_real: e.target.value,
+                          empleado_id: e.target.value, // este será el que se envía al backend
+                          // Mantenemos hora_inicio, hora_fin y duracion_min sin cambios
+                          // NO los reseteamos
+                        }))
+                      }
+                      placeholder="Seleccionar empleado"
+                    >
+                      <option value="" disabled hidden>Seleccionar empleado</option>
+                      {empleadosDisponiblesSlot.map((empID) => {
+                        const emp = empleados.find((e) => e.id === empID);
+                        return (
+                          <option key={empID} value={empID}>
+                            {emp ? emp.nombre : `Empleado #${empID}`}
+                          </option>
+                        );
+                      })}
+                    </Select>
+                  </div>
+                )}
+                {/*******************************************************/}
 
                 <Button
                   className="w-full"
