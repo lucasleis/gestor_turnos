@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -159,44 +159,43 @@ func estaOcupado(inicio, fin time.Time, turnos []Turno, fecha string) bool {
 }
 
 func empleadoOcupado(db *sql.DB, empleadoID int, fecha string, inicio, fin time.Time) bool {
-    layout := "2006-01-02 15:04:05 -0700 -07"
+	layout := "2006-01-02 15:04:05 -0700 -07"
 
-    rows, err := db.Query(`
+	rows, err := db.Query(`
         SELECT hora_inicio, hora_fin 
         FROM turnos
         WHERE empleado_id = $1 
           AND fecha = $2
           AND estado != 'cancelado'`,
-        empleadoID, fecha)
-    if err != nil {
-        fmt.Println("Error consultando turnos:", err)
-        return true // si hay error, por seguridad consideramos ocupado
-    }
-    defer rows.Close()
+		empleadoID, fecha)
+	if err != nil {
+		fmt.Println("Error consultando turnos:", err)
+		return true // si hay error, por seguridad consideramos ocupado
+	}
+	defer rows.Close()
 
-    for rows.Next() {
-        var hiStr, hfStr string
-        if err := rows.Scan(&hiStr, &hfStr); err != nil {
-            fmt.Println("Error escaneando turno:", err)
-            continue
-        }
+	for rows.Next() {
+		var hiStr, hfStr string
+		if err := rows.Scan(&hiStr, &hfStr); err != nil {
+			fmt.Println("Error escaneando turno:", err)
+			continue
+		}
 
-        ocupadoInicio, err1 := time.Parse(layout, hiStr)
-        ocupadoFin, err2 := time.Parse(layout, hfStr)
-        if err1 != nil || err2 != nil {
-            fmt.Println("Error parseando horas:", err1, err2)
-            continue
-        }
+		ocupadoInicio, err1 := time.Parse(layout, hiStr)
+		ocupadoFin, err2 := time.Parse(layout, hfStr)
+		if err1 != nil || err2 != nil {
+			fmt.Println("Error parseando horas:", err1, err2)
+			continue
+		}
 
-        // Solapamiento
-        if inicio.Before(ocupadoFin) && fin.After(ocupadoInicio) {
-            return true
-        }
-    }
+		// Solapamiento
+		if inicio.Before(ocupadoFin) && fin.After(ocupadoInicio) {
+			return true
+		}
+	}
 
-    return false
+	return false
 }
-
 
 // GET /horarios_disponibles?empleado_id=1&servicio_id=1&fecha=2025-09-16
 // También soporta: /horarios_disponibles?empleado_id=all&servicio_id=1&fecha=2025-09-16
@@ -275,7 +274,7 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 		ahora := hoy
 
 		// calcular el próximo múltiplo de la duración (ej: si ahora es 17:01 y la duración es 30, empezar 17:30)
-		minutes := ((ahora.Minute()/duracion)+1) * duracion
+		minutes := ((ahora.Minute() / duracion) + 1) * duracion
 		nextSlot := time.Date(hoy.Year(), hoy.Month(), hoy.Day(), ahora.Hour(), 0, 0, 0, time.Local).Add(time.Duration(minutes) * time.Minute)
 
 		if nextSlot.After(workStart) {
@@ -285,8 +284,8 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 
 	// 5. Generar slots disponibles
 	type Slot struct {
-		Hora      string   `json:"hora"`
-		Empleados []int    `json:"empleados"`
+		Hora      string `json:"hora"`
+		Empleados []int  `json:"empleados"`
 	}
 
 	var slots []Slot
@@ -343,9 +342,7 @@ func getHorariosDisponibles(c *gin.Context, db *sql.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"disponibles": slots})
-
 }
-
 
 // GET /turnos
 func getTurnos(c *gin.Context, db *sql.DB) {
@@ -364,6 +361,89 @@ func getTurnos(c *gin.Context, db *sql.DB) {
 			return
 		}
 		turnos = append(turnos, t)
+	}
+
+	c.JSON(http.StatusOK, turnos)
+}
+
+// GET /turnos/cliente/:id
+// GET /turnos/cliente/:id
+func getTurnosPorCliente(c *gin.Context, db *sql.DB) {
+	clienteID := c.Param("id")
+
+	rows, err := db.Query(`
+        SELECT 
+            t.id,
+            t.cliente_id,
+            c.nombre AS cliente_nombre,
+            c.apellido AS cliente_apellido,
+            t.empleado_id,
+            e.nombre AS empleado_nombre,
+            e.apellido AS empleado_apellido,
+            t.servicio_id,
+            s.nombre AS servicio_nombre,
+            TO_CHAR(t.fecha, 'YYYY-MM-DD') AS fecha,
+            TO_CHAR(t.hora_inicio, 'HH24:MI') AS hora_inicio,
+            TO_CHAR(t.hora_fin, 'HH24:MI') AS hora_fin,
+            t.estado
+        FROM turnos t
+        JOIN clientes c ON t.cliente_id = c.id
+        JOIN empleados e ON t.empleado_id = e.id
+        JOIN servicios s ON t.servicio_id = s.id
+        WHERE t.cliente_id = $1
+          AND t.estado != 'cancelado'
+          AND (t.fecha::date + t.hora_inicio::time) >= NOW()
+        ORDER BY t.fecha, t.hora_inicio`, clienteID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	// Struct extendido con todos los campos
+	type TurnoExtendido struct {
+		ID               int    `json:"id"`
+		ClienteID        int    `json:"cliente_id"`
+		ClienteNombre    string `json:"cliente_nombre"`
+		ClienteApellido  string `json:"cliente_apellido"`
+		EmpleadoID       int    `json:"empleado_id"`
+		EmpleadoNombre   string `json:"empleado_nombre"`
+		EmpleadoApellido string `json:"empleado_apellido"`
+		ServicioID       int    `json:"servicio_id"`
+		ServicioNombre   string `json:"servicio_nombre"`
+		Fecha            string `json:"fecha"`
+		HoraInicio       string `json:"hora_inicio"`
+		HoraFin          string `json:"hora_fin"`
+		Estado           string `json:"estado"`
+	}
+
+	var turnos []TurnoExtendido
+	for rows.Next() {
+		var t TurnoExtendido
+		if err := rows.Scan(
+			&t.ID,
+			&t.ClienteID,
+			&t.ClienteNombre,
+			&t.ClienteApellido,
+			&t.EmpleadoID,
+			&t.EmpleadoNombre,
+			&t.EmpleadoApellido,
+			&t.ServicioID,
+			&t.ServicioNombre,
+			&t.Fecha,
+			&t.HoraInicio,
+			&t.HoraFin,
+			&t.Estado,
+		); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		turnos = append(turnos, t)
+	}
+
+	if len(turnos) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no hay turnos futuros para este cliente"})
+		return
 	}
 
 	c.JSON(http.StatusOK, turnos)

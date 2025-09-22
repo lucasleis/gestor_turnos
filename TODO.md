@@ -2,6 +2,7 @@ TODO
 
 1. Permitir reservar turno para barber "Indistinto"
 2. Cancelar turno
+3. Retocar asignacion/muestre de turnos cuando empleado es Indistinto
 
 Prueba
 1. Analizar que es mas eficiente

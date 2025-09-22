@@ -311,6 +311,29 @@ const ShiftBookingApp = () => {
     return <TurnoConfirmado turnoData={turnoConfirmado} onVolverInicio={volverAlFormulario} />;
   }
 
+  // Buscar turno del cliente
+  const buscarTurnoPorCliente = async (clienteId) => {
+    try {
+      const res = await fetch(`${API_BASE}/turnos/cliente/${clienteId}`);
+      if (!res.ok) {
+        setTurnos([]);
+        return;
+      }
+      const data = await res.json();
+  
+      // aseguramos array
+      if (Array.isArray(data)) {
+        setTurnos(data);
+      } else {
+        setTurnos([data]);
+      }
+    } catch (err) {
+      console.error("Error buscando turno:", err);
+      setTurnos([]);
+    }
+  };  
+  
+
   // Vista principal del formulario
   return (
     <div style={{minHeight: '100vh'}}>
@@ -363,9 +386,11 @@ const ShiftBookingApp = () => {
                               const data = await res.json();
                               setClienteExistente(data);
                               setNuevoTurno({ ...nuevoTurno, cliente_id: data.id });
+                              buscarTurnoPorCliente(data.id);   
                             } else {
                               setClienteExistente(false);
-                            }
+                              setTurnos([]); // limpiar turnos en el panel derecho
+                            }                                                      
                           } catch (err) {
                             console.error("Error buscando cliente:", err);
                             setClienteExistente(false);
@@ -595,17 +620,35 @@ const ShiftBookingApp = () => {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-slate-500" />
-                                <span className="font-medium">Cliente #{turno.cliente_id}</span>
+                                <span className="font-medium"> Cliente: {turno.cliente_nombre} {turno.cliente_apellido} </span>
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-slate-600">
-                                <span>Empleado #{turno.empleado_id}</span>
-                                <span>Servicio #{turno.servicio_id}</span>
+                                <span>Empleado: {turno.empleado_nombre || `#${turno.empleado_id}`}</span>
+                                <span>Servicio: {turno.servicio_nombre || `#${turno.servicio_id}`}</span>
                                 <span>{turno.fecha} {turno.hora_inicio}-{turno.hora_fin}</span>
                               </div>
                               <span className="inline-block px-2 py-1 rounded-full text-xs font-medium border">
                                 {turno.estado}
                               </span>
                             </div>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(`${API_BASE}/turnos/${turno.id}`, {
+                                    method: "DELETE",
+                                  });
+                                  if (!res.ok) throw new Error("Error al cancelar turno");
+                                  toast.success("Turno cancelado");
+                                  setTurnos(turnos.filter(t => t.id !== turno.id));
+                                } catch (err) {
+                                  toast.error(err.message || "Error cancelando turno");
+                                }
+                              }}
+                            >
+                              <X className="h-4 w-4 mr-1" /> Cancelar
+                            </Button>
                           </div>
                         </Card>
                       ))}

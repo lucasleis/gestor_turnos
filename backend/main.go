@@ -46,6 +46,7 @@ func main() {
 	// CRUD de turnos           // VERIFICADO
 	r.GET("/turnos", func(c *gin.Context) { getTurnos(c, db) })
 	r.GET("/horarios_disponibles", func(c *gin.Context) { getHorariosDisponibles(c, db) })
+	r.GET("/turnos/cliente/:id", func(c *gin.Context) { getTurnosPorCliente(c, db) })	
 	r.POST("/turnos", func(c *gin.Context) { createTurno(c, db) })
 	r.PUT("/turnos/:id", func(c *gin.Context) { updateTurno(c, db) })
 	r.DELETE("/turnos/:id", func(c *gin.Context) { deleteTurno(c, db) })
