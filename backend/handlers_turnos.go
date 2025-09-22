@@ -25,6 +25,15 @@ import (
 // 		DuracionMin int   `json:"duracion_min"`
 // }
 
+// función helper para capitalizar la primera letra
+func capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	s = strings.ToLower(s)
+	return strings.ToUpper(string(s[0])) + s[1:]
+}
+
 // Validaciones comunes
 func validarTurno(db *sql.DB, t Turno) error {
 	var tmp int
@@ -367,33 +376,32 @@ func getTurnos(c *gin.Context, db *sql.DB) {
 }
 
 // GET /turnos/cliente/:id
-// GET /turnos/cliente/:id
 func getTurnosPorCliente(c *gin.Context, db *sql.DB) {
 	clienteID := c.Param("id")
 
 	rows, err := db.Query(`
-        SELECT 
-            t.id,
-            t.cliente_id,
-            c.nombre AS cliente_nombre,
-            c.apellido AS cliente_apellido,
-            t.empleado_id,
-            e.nombre AS empleado_nombre,
-            e.apellido AS empleado_apellido,
-            t.servicio_id,
-            s.nombre AS servicio_nombre,
-            TO_CHAR(t.fecha, 'YYYY-MM-DD') AS fecha,
-            TO_CHAR(t.hora_inicio, 'HH24:MI') AS hora_inicio,
-            TO_CHAR(t.hora_fin, 'HH24:MI') AS hora_fin,
-            t.estado
-        FROM turnos t
-        JOIN clientes c ON t.cliente_id = c.id
-        JOIN empleados e ON t.empleado_id = e.id
-        JOIN servicios s ON t.servicio_id = s.id
-        WHERE t.cliente_id = $1
-          AND t.estado != 'cancelado'
-          AND (t.fecha::date + t.hora_inicio::time) >= NOW()
-        ORDER BY t.fecha, t.hora_inicio`, clienteID)
+		SELECT 
+			t.id,
+			t.cliente_id,
+			c.nombre AS cliente_nombre,
+			c.apellido AS cliente_apellido,
+			t.empleado_id,
+			e.nombre AS empleado_nombre,
+			e.apellido AS empleado_apellido,
+			t.servicio_id,
+			s.nombre AS servicio_nombre,
+			TO_CHAR(t.fecha, 'DD/MM/YYYY') AS fecha,
+			TO_CHAR(t.hora_inicio, 'HH24:MI') AS hora_inicio,
+			TO_CHAR(t.hora_fin, 'HH24:MI') AS hora_fin,
+			t.estado
+		FROM turnos t
+		JOIN clientes c ON t.cliente_id = c.id
+		JOIN empleados e ON t.empleado_id = e.id
+		JOIN servicios s ON t.servicio_id = s.id
+		WHERE t.cliente_id = $1
+		AND t.estado != 'cancelado'
+		AND (t.fecha::date + t.hora_inicio::time) >= NOW()
+		ORDER BY t.fecha, t.hora_inicio`, clienteID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -438,6 +446,15 @@ func getTurnosPorCliente(c *gin.Context, db *sql.DB) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		// Capitalizamos cliente
+		t.ClienteNombre = capitalize(t.ClienteNombre)
+		t.ClienteApellido = capitalize(t.ClienteApellido)
+
+		// Opcional: capitalizar empleado también
+		t.EmpleadoNombre = capitalize(t.EmpleadoNombre)
+		t.EmpleadoApellido = capitalize(t.EmpleadoApellido)
+
 		turnos = append(turnos, t)
 	}
 

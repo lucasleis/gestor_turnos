@@ -624,12 +624,18 @@ const ShiftBookingApp = () => {
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-slate-600">
                                 <span>Empleado: {turno.empleado_nombre || `#${turno.empleado_id}`}</span>
-                                <span>Servicio: {turno.servicio_nombre || `#${turno.servicio_id}`}</span>
-                                <span>{turno.fecha} {turno.hora_inicio}-{turno.hora_fin}</span>
                               </div>
-                              <span className="inline-block px-2 py-1 rounded-full text-xs font-medium border">
-                                {turno.estado}
-                              </span>
+                              <div className="flex items-center space-x-4 text-sm text-slate-600">
+                                <span>Servicio: {turno.servicio_nombre || `#${turno.servicio_id}`}</span>
+                              </div>  
+                              <div className="flex items-center space-x-4 text-sm text-slate-600">
+                                <span>Fecha: {turno.fecha} - {turno.hora_inicio} </span>
+                              </div>
+                              {/* 
+                                <span className="inline-block px-2 py-1 rounded-full text-xs font-medium border">
+                                  {turno.estado}
+                                </span>
+                              */}
                             </div>
                             <Button
                               variant="danger"
@@ -647,7 +653,7 @@ const ShiftBookingApp = () => {
                                 }
                               }}
                             >
-                              <X className="h-4 w-4 mr-1" /> Cancelar
+                              <X className="h-4 w-4 mr-1" /> Cancelar turno
                             </Button>
                           </div>
                         </Card>

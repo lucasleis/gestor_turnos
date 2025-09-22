@@ -46,6 +46,7 @@
   padding: var(--spacing-lg);
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
+  margin: 0px 0px 8px 0px;
 }
   
 .card:hover {
