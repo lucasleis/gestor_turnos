@@ -620,7 +620,7 @@ const ShiftBookingApp = () => {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-slate-500" />
-                                <span className="font-medium"> Cliente: {turno.cliente_nombre} {turno.cliente_apellido} </span>
+                                <span className="font-medium"> {turno.cliente_nombre} {turno.cliente_apellido} </span>
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-slate-600">
                                 <span>Empleado: {turno.empleado_nombre || `#${turno.empleado_id}`}</span>

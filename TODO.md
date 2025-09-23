@@ -1,11 +1,6 @@
 TODO
 
-1. Permitir reservar turno para barber "Indistinto"
-2. Cancelar turno
-3. Retocar asignacion/muestre de turnos cuando empleado es Indistinto
-
-Prueba
-1. Analizar que es mas eficiente
-- Funcion que trae turnos para 1 dia para x empleado
-- Funcion que trae turnos para varios dia para x empleado
-- Funcion que trae turnos para varios dia para varios empleados
+1. Retocar asignacion/muestre de turnos cuando empleado es Indistinto
+    - Trae los horarios, y cuando confirmas el turno ahi muestra que no puede 
+2. Cuando genera turnos, que tambien considere si hay un turno sacado, que tome a partir del horario de fin
+3. Cuando se reserva un turno y se vuelve a la main, los campos muestran numeros de ids, no los nombres

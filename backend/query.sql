@@ -1,3 +1,5 @@
+ALTER DATABASE gestor_turnos SET TIME ZONE 'America/Argentina/Buenos_Aires';
+
 -- Usuarios
 CREATE TABLE IF NOT EXISTS clientes (
     id SERIAL PRIMARY KEY,          -- dni
@@ -30,9 +32,9 @@ CREATE TABLE IF NOT EXISTS turnos (
     empleado_id INT REFERENCES empleados(id),
     servicio_id INT REFERENCES servicios(id),
     fecha DATE NOT NULL,
-    hora_inicio TIME NOT NULL,
+    turno_inicio TIMESTAMP NOT NULL,
+    turno_fin TIMESTAMP NOT NULL,
     duracion_min INTEGER NOT NULL,
-    hora_fin TIME NOT NULL,
     notas TEXT,
     estado VARCHAR(20) DEFAULT 'pendiente'  -- pendiente, confirmado, cancelado, completado
 );
